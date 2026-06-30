@@ -1,12 +1,14 @@
 """
-BTC Trend Trader v2.3
+BTC Trend Trader v2.4
 Backtester
 
-Responsibilities
-----------------
-- Count BUY / SELL / HOLD signals
-- Simulate historical trades
-- Use pending-order infrastructure
+Professional execution model
+
+Execution Order
+---------------
+1. Activate pending orders
+2. Update open trades
+3. Submit new pending orders
 """
 
 from __future__ import annotations
@@ -17,107 +19,94 @@ from backtesting.trade_simulator import TradeSimulator
 
 
 class Backtester:
-    """
-    Backtests strategy signals using the TradeSimulator.
-    """
 
     def __init__(self, starting_balance: float = 10000):
+
         self.starting_balance = starting_balance
 
     # ---------------------------------------------------------
-    # Market Summary
-    # ---------------------------------------------------------
 
-    def summarize(self, df: pd.DataFrame) -> dict:
-
-        buy_count = (df["Signal"] == "BUY").sum()
-        sell_count = (df["Signal"] == "SELL").sum()
-        hold_count = (df["Signal"] == "HOLD").sum()
+    def summarize(self, df: pd.DataFrame):
 
         return {
+
             "Total Candles": len(df),
-            "BUY Signals": int(buy_count),
-            "SELL Signals": int(sell_count),
-            "HOLD Signals": int(hold_count),
+
+            "BUY Signals": int((df["Signal"] == "BUY").sum()),
+
+            "SELL Signals": int((df["Signal"] == "SELL").sum()),
+
+            "HOLD Signals": int((df["Signal"] == "HOLD").sum()),
+
         }
 
-    # ---------------------------------------------------------
-    # Internal Helpers
-    # ---------------------------------------------------------
-
-    def _update_open_trade(
-        self,
-        simulator,
-        row,
-    ):
-
-        simulator.update_trade(
-            high=row["High"],
-            low=row["Low"],
-            close=row["Close"],
-            current_time=row["Time"],
-        )
-
-    # ---------------------------------------------------------
-
-    def _process_signal(
-        self,
-        simulator,
-        row,
-        lot_size,
-    ):
-
-        signal = row["Signal"]
-
-        if signal not in ("BUY", "SELL"):
-            return
-
-        # Submit the order
-        simulator.submit_order(
-            direction=signal,
-            entry_price=row["Close"],
-            stop_loss=row["StopLoss"],
-            take_profit=row["TakeProfit"],
-            lot_size=lot_size,
-            submit_time=row["Time"],
-        )
-
-        # Immediately activate it.
-        # (Behavior remains identical to v2.2)
-        simulator.process_pending_order()
-
-    # ---------------------------------------------------------
-    # Simulation
     # ---------------------------------------------------------
 
     def simulate(
         self,
         df: pd.DataFrame,
         lot_size: float = 1.0,
-    ) -> dict:
+    ):
 
         simulator = TradeSimulator(self.starting_balance)
 
         for _, row in df.iterrows():
 
-            # Step 1
-            self._update_open_trade(
-                simulator,
-                row,
+            # ---------------------------------------------
+            # STEP 1
+            # Activate pending order using NEXT candle open
+            # ---------------------------------------------
+
+            if simulator.has_pending_trade():
+
+                simulator.process_pending_order(
+                    entry_price=row["Open"],
+                    entry_time=row["Time"],
+                )
+
+            # ---------------------------------------------
+            # STEP 2
+            # Update open trade
+            # ---------------------------------------------
+
+            simulator.update_trade(
+                high=row["High"],
+                low=row["Low"],
+                close=row["Close"],
+                current_time=row["Time"],
             )
 
-            # Step 2
+            # ---------------------------------------------
+            # STEP 3
+            # Skip if trade still open
+            # ---------------------------------------------
+
             if simulator.has_open_trade():
                 continue
 
-            # Step 3
-            self._process_signal(
-                simulator,
-                row,
-                lot_size,
+            # ---------------------------------------------
+            # STEP 4
+            # Submit NEW pending order
+            # ---------------------------------------------
+
+            signal = row["Signal"]
+
+            if signal not in ("BUY", "SELL"):
+                continue
+
+            simulator.submit_order(
+                direction=signal,
+                signal_price=row["Close"],
+                stop_loss=row["StopLoss"],
+                take_profit=row["TakeProfit"],
+                lot_size=lot_size,
+                submit_time=row["Time"],
             )
 
-        # Close any remaining open trade
+        # -------------------------------------------------
+        # Close final open trade
+        # -------------------------------------------------
+
         if simulator.has_open_trade():
 
             last = df.iloc[-1]
@@ -128,6 +117,9 @@ class Backtester:
             )
 
         return {
+
             "statistics": simulator.get_statistics(),
+
             "trades": simulator.get_trade_history(),
+
         }

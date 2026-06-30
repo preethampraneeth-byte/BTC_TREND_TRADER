@@ -1,7 +1,7 @@
 """
 trade_simulator.py
 
-Trade Simulator v2.3
+Trade Simulator v2.4
 
 Responsibilities
 ----------------
@@ -34,7 +34,7 @@ class TradeStatus(Enum):
 @dataclass
 class PendingOrder:
     direction: str
-    entry_price: float
+    signal_price: float
     stop_loss: float
     take_profit: float
     lot_size: float
@@ -76,7 +76,6 @@ class TradeSimulator:
         self.balance = starting_balance
 
         self.pending_trade: Optional[PendingOrder] = None
-
         self.current_trade: Optional[SimulatedTrade] = None
 
         self.trade_history = []
@@ -98,7 +97,7 @@ class TradeSimulator:
     def submit_order(
         self,
         direction,
-        entry_price,
+        signal_price,
         stop_loss,
         take_profit,
         lot_size,
@@ -113,7 +112,7 @@ class TradeSimulator:
 
         self.pending_trade = PendingOrder(
             direction=direction,
-            entry_price=entry_price,
+            signal_price=signal_price,
             stop_loss=stop_loss,
             take_profit=take_profit,
             lot_size=lot_size,
@@ -124,7 +123,11 @@ class TradeSimulator:
 
     # -----------------------------------------------------
 
-    def process_pending_order(self):
+    def process_pending_order(
+        self,
+        entry_price,
+        entry_time,
+    ):
 
         if self.pending_trade is None:
             return False
@@ -133,11 +136,11 @@ class TradeSimulator:
 
         self.current_trade = SimulatedTrade(
             direction=order.direction,
-            entry_price=order.entry_price,
+            entry_price=entry_price,
             stop_loss=order.stop_loss,
             take_profit=order.take_profit,
             lot_size=order.lot_size,
-            entry_time=order.submit_time,
+            entry_time=entry_time,
             status=TradeStatus.OPEN,
         )
 
