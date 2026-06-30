@@ -1,13 +1,14 @@
 """
 trade_simulator.py
 
-Simulates trade execution during backtesting.
+Trade Simulator v2.3
 
-Responsibilities:
-- Open simulated trades
-- Monitor TP / SL
+Responsibilities
+----------------
+- Manage pending orders
+- Manage open trades
 - Close trades
-- Track equity
+- Track balance
 - Calculate PnL
 """
 
@@ -16,15 +17,33 @@ from enum import Enum
 from typing import Optional
 
 
-class TradeStatus(Enum):
-    """
-    Trade lifecycle.
-    """
+# =========================================================
+# Trade Status
+# =========================================================
 
+class TradeStatus(Enum):
     PENDING = "PENDING"
     OPEN = "OPEN"
     CLOSED = "CLOSED"
 
+
+# =========================================================
+# Pending Order
+# =========================================================
+
+@dataclass
+class PendingOrder:
+    direction: str
+    entry_price: float
+    stop_loss: float
+    take_profit: float
+    lot_size: float
+    submit_time: str
+
+
+# =========================================================
+# Simulated Trade
+# =========================================================
 
 @dataclass
 class SimulatedTrade:
@@ -45,6 +64,10 @@ class SimulatedTrade:
     result: Optional[str] = None
 
 
+# =========================================================
+# Trade Simulator
+# =========================================================
+
 class TradeSimulator:
 
     def __init__(self, starting_balance: float = 10000):
@@ -52,26 +75,77 @@ class TradeSimulator:
         self.starting_balance = starting_balance
         self.balance = starting_balance
 
+        self.pending_trade: Optional[PendingOrder] = None
+
         self.current_trade: Optional[SimulatedTrade] = None
 
         self.trade_history = []
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+
+    def has_pending_trade(self):
+
+        return self.pending_trade is not None
+
+    # -----------------------------------------------------
 
     def has_open_trade(self):
 
         return self.current_trade is not None
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
 
-    def has_pending_trade(self):
+    def submit_order(
+        self,
+        direction,
+        entry_price,
+        stop_loss,
+        take_profit,
+        lot_size,
+        submit_time,
+    ):
 
-        if self.current_trade is None:
+        if self.pending_trade is not None:
             return False
 
-        return self.current_trade.status == TradeStatus.PENDING
+        if self.current_trade is not None:
+            return False
 
-    # ---------------------------------------------------------
+        self.pending_trade = PendingOrder(
+            direction=direction,
+            entry_price=entry_price,
+            stop_loss=stop_loss,
+            take_profit=take_profit,
+            lot_size=lot_size,
+            submit_time=submit_time,
+        )
+
+        return True
+
+    # -----------------------------------------------------
+
+    def process_pending_order(self):
+
+        if self.pending_trade is None:
+            return False
+
+        order = self.pending_trade
+
+        self.current_trade = SimulatedTrade(
+            direction=order.direction,
+            entry_price=order.entry_price,
+            stop_loss=order.stop_loss,
+            take_profit=order.take_profit,
+            lot_size=order.lot_size,
+            entry_time=order.submit_time,
+            status=TradeStatus.OPEN,
+        )
+
+        self.pending_trade = None
+
+        return True
+
+    # -----------------------------------------------------
 
     def open_trade(
         self,
@@ -98,7 +172,7 @@ class TradeSimulator:
 
         return True
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
 
     def update_trade(
         self,
@@ -135,7 +209,7 @@ class TradeSimulator:
 
                 return "WIN"
 
-        elif trade.direction.upper() == "SELL":
+        else:
 
             if high >= trade.stop_loss:
 
@@ -159,7 +233,7 @@ class TradeSimulator:
 
         return None
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
 
     def force_close(
         self,
@@ -176,7 +250,7 @@ class TradeSimulator:
             "FORCED",
         )
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
 
     def _close_trade(
         self,
@@ -193,11 +267,8 @@ class TradeSimulator:
         trade.status = TradeStatus.CLOSED
 
         if trade.direction.upper() == "BUY":
-
             points = exit_price - trade.entry_price
-
         else:
-
             points = trade.entry_price - exit_price
 
         trade.profit = points * trade.lot_size
@@ -208,19 +279,19 @@ class TradeSimulator:
 
         self.current_trade = None
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
 
     def get_balance(self):
 
         return self.balance
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
 
     def get_trade_history(self):
 
         return self.trade_history
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
 
     def get_statistics(self):
 
@@ -239,13 +310,15 @@ class TradeSimulator:
             }
 
         wins = sum(
-            1 for t in self.trade_history
-            if t.result == "WIN"
+            1
+            for trade in self.trade_history
+            if trade.result == "WIN"
         )
 
         losses = sum(
-            1 for t in self.trade_history
-            if t.result == "LOSS"
+            1
+            for trade in self.trade_history
+            if trade.result == "LOSS"
         )
 
         net_profit = self.balance - self.starting_balance
