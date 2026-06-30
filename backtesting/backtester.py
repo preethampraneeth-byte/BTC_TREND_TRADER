@@ -1,14 +1,12 @@
 """
-BTC Trend Trader v1.0
-Backtester (Version 2)
+BTC Trend Trader v2.2
+Backtester
 
-Version 1:
+Responsibilities
+----------------
 - Count BUY / SELL / HOLD signals
-
-Version 2:
-- Simulate trades
-- Calculate profit/loss
-- Return trading statistics
+- Simulate historical trades
+- Prepare for pending-order execution
 """
 
 from __future__ import annotations
@@ -27,7 +25,7 @@ class Backtester:
         self.starting_balance = starting_balance
 
     # ---------------------------------------------------------
-    # Existing functionality
+    # Market Summary
     # ---------------------------------------------------------
 
     def summarize(self, df: pd.DataFrame) -> dict:
@@ -36,17 +34,55 @@ class Backtester:
         sell_count = (df["Signal"] == "SELL").sum()
         hold_count = (df["Signal"] == "HOLD").sum()
 
-        total = len(df)
-
         return {
-            "Total Candles": total,
+            "Total Candles": len(df),
             "BUY Signals": int(buy_count),
             "SELL Signals": int(sell_count),
             "HOLD Signals": int(hold_count),
         }
 
     # ---------------------------------------------------------
-    # New functionality
+    # Internal Helpers
+    # ---------------------------------------------------------
+
+    def _update_open_trade(
+        self,
+        simulator,
+        row,
+    ):
+
+        simulator.update_trade(
+            high=row["High"],
+            low=row["Low"],
+            close=row["Close"],
+            current_time=row["Time"],
+        )
+
+    # ---------------------------------------------------------
+
+    def _process_signal(
+        self,
+        simulator,
+        row,
+        lot_size,
+    ):
+
+        signal = row["Signal"]
+
+        if signal not in ("BUY", "SELL"):
+            return
+
+        simulator.open_trade(
+            direction=signal,
+            entry_price=row["Close"],
+            stop_loss=row["StopLoss"],
+            take_profit=row["TakeProfit"],
+            lot_size=lot_size,
+            entry_time=row["Time"],
+        )
+
+    # ---------------------------------------------------------
+    # Simulation
     # ---------------------------------------------------------
 
     def simulate(
@@ -54,52 +90,28 @@ class Backtester:
         df: pd.DataFrame,
         lot_size: float = 1.0,
     ) -> dict:
-        """
-        Simulate historical trades.
-
-        Required DataFrame columns:
-
-        Time
-        Open
-        High
-        Low
-        Close
-        Signal
-        StopLoss
-        TakeProfit
-        """
 
         simulator = TradeSimulator(self.starting_balance)
 
         for _, row in df.iterrows():
 
-            # Update existing trade first
-            simulator.update_trade(
-                high=row["High"],
-                low=row["Low"],
-                close=row["Close"],
-                current_time=row["Time"],
+            # Step 1
+            self._update_open_trade(
+                simulator,
+                row,
             )
 
-            # Skip if a trade is already open
+            # Step 2
             if simulator.has_open_trade():
                 continue
 
-            signal = row["Signal"]
-
-            if signal not in ("BUY", "SELL"):
-                continue
-
-            simulator.open_trade(
-                direction=signal,
-                entry_price=row["Close"],
-                stop_loss=row["StopLoss"],
-                take_profit=row["TakeProfit"],
-                lot_size=lot_size,
-                entry_time=row["Time"],
+            # Step 3
+            self._process_signal(
+                simulator,
+                row,
+                lot_size,
             )
 
-        # Close any remaining trade at the final candle
         if simulator.has_open_trade():
 
             last = df.iloc[-1]
