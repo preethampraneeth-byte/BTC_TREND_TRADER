@@ -12,7 +12,13 @@ Responsibilities:
 """
 
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional
+
+class TradeStatus(Enum):
+    PENDING = "PENDING"
+    OPEN = "OPEN"
+    CLOSED = "CLOSED"
 
 
 @dataclass
@@ -24,6 +30,8 @@ class SimulatedTrade:
     lot_size: float
 
     entry_time: str
+
+    status: TradeStatus = TradeStatus.PENDING
 
     exit_price: Optional[float] = None
     exit_time: Optional[str] = None
