@@ -36,6 +36,16 @@ class Dashboard:
 
     # ---------------------------------------------------------
 
+    def show_diagnostics(self, diagnostics: dict):
+
+        print("\nSTRATEGY DIAGNOSTICS")
+        print("-" * 60)
+
+        for key, value in diagnostics.items():
+            print(f"{key:<25}: {value}")
+
+    # ---------------------------------------------------------
+
     def show_performance(self, performance: dict):
 
         print("\nPERFORMANCE REPORT")
@@ -77,7 +87,7 @@ class Dashboard:
 
             print(f"Lot Size    : {trade.lot_size}")
 
-            print(f"Profit      : {round(trade.profit,2)}")
+            print(f"Profit      : {round(trade.profit, 2)}")
             print(f"Result      : {trade.result}")
 
     # ---------------------------------------------------------
@@ -87,11 +97,15 @@ class Dashboard:
         summary: dict,
         performance: dict,
         trades: List,
+        diagnostics: dict | None = None,
     ):
 
         self.show_header()
 
         self.show_summary(summary)
+
+        if diagnostics:
+            self.show_diagnostics(diagnostics)
 
         self.show_performance(performance)
 

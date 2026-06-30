@@ -136,3 +136,17 @@ ENABLE_TRAILING_STOP = False
 
 # ATR multiplier for trailing stop
 TRAILING_STOP_ATR = 1.5
+
+# ======================================================
+# Optimization Settings
+# ======================================================
+
+# Parameter values tested by optimizer.py
+
+OPTIMIZE_ADX_VALUES = [
+    20,
+    22,
+    25,
+    28,
+    30,
+]
