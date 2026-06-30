@@ -12,7 +12,18 @@ Responsibilities:
 """
 
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional
+
+
+class TradeStatus(Enum):
+    """
+    Trade lifecycle.
+    """
+
+    PENDING = "PENDING"
+    OPEN = "OPEN"
+    CLOSED = "CLOSED"
 
 
 @dataclass
@@ -24,6 +35,8 @@ class SimulatedTrade:
     lot_size: float
 
     entry_time: str
+
+    status: TradeStatus = TradeStatus.OPEN
 
     exit_price: Optional[float] = None
     exit_time: Optional[str] = None
@@ -51,6 +64,15 @@ class TradeSimulator:
 
     # ---------------------------------------------------------
 
+    def has_pending_trade(self):
+
+        if self.current_trade is None:
+            return False
+
+        return self.current_trade.status == TradeStatus.PENDING
+
+    # ---------------------------------------------------------
+
     def open_trade(
         self,
         direction,
@@ -71,6 +93,7 @@ class TradeSimulator:
             take_profit=take_profit,
             lot_size=lot_size,
             entry_time=entry_time,
+            status=TradeStatus.OPEN,
         )
 
         return True
@@ -92,7 +115,6 @@ class TradeSimulator:
 
         if trade.direction.upper() == "BUY":
 
-            # Stop Loss
             if low <= trade.stop_loss:
 
                 self._close_trade(
@@ -103,7 +125,6 @@ class TradeSimulator:
 
                 return "LOSS"
 
-            # Take Profit
             if high >= trade.take_profit:
 
                 self._close_trade(
@@ -116,7 +137,6 @@ class TradeSimulator:
 
         elif trade.direction.upper() == "SELL":
 
-            # Stop Loss
             if high >= trade.stop_loss:
 
                 self._close_trade(
@@ -127,7 +147,6 @@ class TradeSimulator:
 
                 return "LOSS"
 
-            # Take Profit
             if low <= trade.take_profit:
 
                 self._close_trade(
@@ -171,6 +190,7 @@ class TradeSimulator:
         trade.exit_price = exit_price
         trade.exit_time = exit_time
         trade.result = result
+        trade.status = TradeStatus.CLOSED
 
         if trade.direction.upper() == "BUY":
 
@@ -231,21 +251,11 @@ class TradeSimulator:
         net_profit = self.balance - self.starting_balance
 
         return {
-
             "starting_balance": self.starting_balance,
-
             "ending_balance": self.balance,
-
             "net_profit": net_profit,
-
             "total_trades": total,
-
             "wins": wins,
-
             "losses": losses,
-
-            "win_rate": round(
-                (wins / total) * 100,
-                2,
-            ),
+            "win_rate": round((wins / total) * 100, 2),
         }
