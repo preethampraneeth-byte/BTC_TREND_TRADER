@@ -1,5 +1,5 @@
 """
-BTC Trend Trader v2.4
+BTC Trend Trader v3.0
 Backtester
 
 Professional execution model
@@ -9,12 +9,16 @@ Execution Order
 1. Activate pending orders
 2. Update open trades
 3. Submit new pending orders
+4. Calculate dynamic position size
 """
 
 from __future__ import annotations
 
 import pandas as pd
 
+import config
+
+from core.risk_manager import RiskManager
 from backtesting.trade_simulator import TradeSimulator
 
 
@@ -49,6 +53,9 @@ class Backtester:
     ):
 
         simulator = TradeSimulator(self.starting_balance)
+
+        # Risk Manager
+        risk_manager = RiskManager()
 
         for _, row in df.iterrows():
 
@@ -94,12 +101,23 @@ class Backtester:
             if signal not in ("BUY", "SELL"):
                 continue
 
+            # ---------------------------------------------
+            # Calculate Dynamic Position Size
+            # ---------------------------------------------
+
+            calculated_lot = risk_manager.calculate_position_size(
+                balance=simulator.get_balance(),
+                risk_percent=config.RISK_PER_TRADE,
+                entry_price=row["Close"],
+                stop_loss=row["StopLoss"],
+            )
+
             simulator.submit_order(
                 direction=signal,
                 signal_price=row["Close"],
                 stop_loss=row["StopLoss"],
                 take_profit=row["TakeProfit"],
-                lot_size=lot_size,
+                lot_size=calculated_lot,
                 submit_time=row["Time"],
             )
 

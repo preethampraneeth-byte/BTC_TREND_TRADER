@@ -1,68 +1,35 @@
 """
-BTC Trend Trader v1.0
-Risk Management Module
+BTC Trend Trader v3.0
+Risk Manager
+
+Calculates position size based on
+account balance and risk percentage.
 """
-
-from __future__ import annotations
-
-import config
 
 
 class RiskManager:
     """
-    Calculates trade levels and risk information.
+    Handles position sizing.
     """
 
-    def calculate_trade_levels(self, signal: str, row) -> dict:
+    def calculate_position_size(
+        self,
+        balance,
+        risk_percent,
+        entry_price,
+        stop_loss,
+    ):
         """
-        Calculate Entry, Stop Loss and Take Profit.
-
-        Parameters
-        ----------
-        signal : str
-            BUY / SELL / HOLD
-
-        row : pandas.Series
-
-        Returns
-        -------
-        dict
+        Calculate lot size using fixed-risk model.
         """
 
-        entry = float(row["Close"])
-        atr = float(row["ATR"])
+        risk_amount = balance * risk_percent
 
-        sl_distance = atr * config.ATR_SL_MULTIPLIER
-        tp_distance = sl_distance * config.RR_RATIO
+        stop_distance = abs(entry_price - stop_loss)
 
-        trade = {
-            "Signal": signal,
-            "Reason": row.get("Reason", ""),
-            "Entry": round(entry, 2),
-            "ATR": round(atr, 2),
-            "StopLoss": None,
-            "TakeProfit": None,
-            "StopDistance": 0.0,
-            "RiskPercent": config.RISK_PER_TRADE * 100,
-            "RiskReward": config.RR_RATIO,
-        }
+        if stop_distance == 0:
+            return 0.0
 
-        if signal == "BUY":
+        lot_size = risk_amount / stop_distance
 
-            stop_loss = entry - sl_distance
-            take_profit = entry + tp_distance
-
-            trade["StopLoss"] = round(stop_loss, 2)
-            trade["TakeProfit"] = round(take_profit, 2)
-            trade["StopDistance"] = round(entry - stop_loss, 2)
-
-        elif signal == "SELL":
-
-            stop_loss = entry + sl_distance
-            take_profit = entry - tp_distance
-
-            trade["StopLoss"] = round(stop_loss, 2)
-            trade["TakeProfit"] = round(take_profit, 2)
-            trade["StopDistance"] = round(stop_loss - entry, 2)
-
-        return trade
+        return round(lot_size, 2)
