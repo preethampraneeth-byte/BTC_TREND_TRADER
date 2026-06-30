@@ -108,6 +108,7 @@ def main():
             trades=trades,
             starting_balance=statistics["starting_balance"],
             ending_balance=statistics["ending_balance"],
+            equity_curve=statistics["equity_curve"],
         )
 
         # -------------------------------------------------

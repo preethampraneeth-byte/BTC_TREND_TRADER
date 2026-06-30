@@ -1,7 +1,7 @@
 """
 trade_simulator.py
 
-Trade Simulator v2.4
+Trade Simulator v2.5
 
 Responsibilities
 ----------------
@@ -9,6 +9,7 @@ Responsibilities
 - Manage open trades
 - Close trades
 - Track balance
+- Track equity curve
 - Calculate PnL
 """
 
@@ -74,6 +75,9 @@ class TradeSimulator:
 
         self.starting_balance = starting_balance
         self.balance = starting_balance
+
+        # NEW
+        self.equity_curve = [starting_balance]
 
         self.pending_trade: Optional[PendingOrder] = None
         self.current_trade: Optional[SimulatedTrade] = None
@@ -278,6 +282,9 @@ class TradeSimulator:
 
         self.balance += trade.profit
 
+        # NEW
+        self.equity_curve.append(self.balance)
+
         self.trade_history.append(trade)
 
         self.current_trade = None
@@ -296,6 +303,12 @@ class TradeSimulator:
 
     # -----------------------------------------------------
 
+    def get_equity_curve(self):
+
+        return self.equity_curve
+
+    # -----------------------------------------------------
+
     def get_statistics(self):
 
         total = len(self.trade_history)
@@ -310,6 +323,7 @@ class TradeSimulator:
                 "wins": 0,
                 "losses": 0,
                 "win_rate": 0,
+                "equity_curve": self.equity_curve,
             }
 
         wins = sum(
@@ -334,4 +348,5 @@ class TradeSimulator:
             "wins": wins,
             "losses": losses,
             "win_rate": round((wins / total) * 100, 2),
+            "equity_curve": self.equity_curve,
         }
