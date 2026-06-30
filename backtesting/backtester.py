@@ -1,12 +1,12 @@
 """
-BTC Trend Trader v2.2
+BTC Trend Trader v2.3
 Backtester
 
 Responsibilities
 ----------------
 - Count BUY / SELL / HOLD signals
 - Simulate historical trades
-- Prepare for pending-order execution
+- Use pending-order infrastructure
 """
 
 from __future__ import annotations
@@ -72,14 +72,19 @@ class Backtester:
         if signal not in ("BUY", "SELL"):
             return
 
-        simulator.open_trade(
+        # Submit the order
+        simulator.submit_order(
             direction=signal,
             entry_price=row["Close"],
             stop_loss=row["StopLoss"],
             take_profit=row["TakeProfit"],
             lot_size=lot_size,
-            entry_time=row["Time"],
+            submit_time=row["Time"],
         )
+
+        # Immediately activate it.
+        # (Behavior remains identical to v2.2)
+        simulator.process_pending_order()
 
     # ---------------------------------------------------------
     # Simulation
@@ -112,6 +117,7 @@ class Backtester:
                 lot_size,
             )
 
+        # Close any remaining open trade
         if simulator.has_open_trade():
 
             last = df.iloc[-1]
