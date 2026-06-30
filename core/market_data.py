@@ -3,14 +3,13 @@ BTC Trend Trader v1.0
 Market Data Module
 """
 
-from datetime import datetime
 import pandas as pd
 import MetaTrader5 as mt5
 
 
 class MarketData:
     """
-    Downloads historical market data from MetaTrader 5.
+    Downloads and loads historical market data.
     """
 
     # Mapping from our config timeframe names to MT5 constants
@@ -24,14 +23,16 @@ class MarketData:
         "D1": mt5.TIMEFRAME_D1,
     }
 
+    # ---------------------------------------------------------
+
     def get_candles(self, symbol, timeframe, bars=500):
         """
-        Download historical candles.
+        Download historical candles from MetaTrader 5.
 
         Parameters
         ----------
         symbol : str
-            Trading symbol (e.g. BTCUSD#)
+            Trading symbol (e.g. BTCUSD)
 
         timeframe : str
             Timeframe (H1, M15, etc.)
@@ -53,7 +54,7 @@ class MarketData:
             symbol,
             mt5_timeframe,
             0,
-            bars
+            bars,
         )
 
         if rates is None:
@@ -65,7 +66,7 @@ class MarketData:
 
         df["time"] = pd.to_datetime(
             df["time"],
-            unit="s"
+            unit="s",
         )
 
         df = df.rename(
@@ -89,3 +90,27 @@ class MarketData:
         ]
 
         return df[columns]
+
+    # ---------------------------------------------------------
+
+    def save_to_csv(self, df, filename):
+        """
+        Save market data to CSV.
+        """
+
+        df.to_csv(
+            filename,
+            index=False,
+        )
+
+    # ---------------------------------------------------------
+
+    def load_from_csv(self, filename):
+        """
+        Load market data from CSV.
+        """
+
+        return pd.read_csv(
+            filename,
+            parse_dates=["Time"],
+        )

@@ -8,7 +8,7 @@ Configuration File
 # ======================================================
 
 LOGIN = 318045825          # Your Demo Account
-PASSWORD = "Trinity@2106" # <-- Replace with your demo password
+PASSWORD = "Trinity@2106"
 SERVER = "XMGlobal-MT5 7"
 
 # Leave as None unless MT5 is not detected automatically
@@ -20,6 +20,17 @@ MT5_PATH = None
 
 SYMBOL = "BTCUSD#"
 TIMEFRAME = "H1"
+
+# ======================================================
+# Data Source
+# ======================================================
+
+# True  = Load historical data from CSV
+# False = Download historical data from MT5
+USE_CSV_DATA = True
+
+# Historical dataset used for reproducible backtesting
+CSV_DATA_FILE = "data/BTCUSD_H1_500.csv"
 
 # ======================================================
 # Risk Settings
@@ -76,7 +87,7 @@ TRADE_LOG = "logs/trades.csv"
 ERROR_LOG = "logs/errors.log"
 
 # ======================================================
-# TRADING MODE
+# Trading Mode
 # ======================================================
 
 # Safety switch.
@@ -86,29 +97,22 @@ DRY_RUN = True
 # Live trading is disabled by default.
 ALLOW_LIVE_TRADING = False
 
-# Maximum simultaneous open positions.
-MAX_OPEN_TRADES = 1
-
-
 # ======================================================
-# LOGGING
+# CSV Logging
 # ======================================================
 
-# Save trades to CSV.
 LOG_TO_CSV = True
 
-
 # ======================================================
-# ORDER SETTINGS
+# Order Settings
 # ======================================================
 
-# Unique identifier for this EA/bot.
 MAGIC_NUMBER = 20260627
 
-# Maximum price deviation (points).
+# Maximum price deviation (points)
 DEVIATION = 20
 
-# Order comment shown in MT5.
+# Order comment shown in MT5
 ORDER_COMMENT = "BTC Trend Trader v1.0"
 
 # ======================================================
@@ -121,14 +125,14 @@ EMA_DISTANCE_ATR_MULTIPLIER = 0.25
 # Trade Management
 # ======================================================
 
-# Enable break-even stop.
+# Enable break-even stop
 ENABLE_BREAK_EVEN = True
 
-# Move stop to entry after this many R multiples.
+# Move stop to entry after this many R multiples
 BREAK_EVEN_R = 1.0
 
-# Enable ATR trailing stop.
+# Enable ATR trailing stop
 ENABLE_TRAILING_STOP = False
 
-# ATR multiplier for trailing stop.
+# ATR multiplier for trailing stop
 TRAILING_STOP_ATR = 1.5
