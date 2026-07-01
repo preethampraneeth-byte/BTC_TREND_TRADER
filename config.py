@@ -145,8 +145,9 @@ TRAILING_STOP_ATR = 1.5
 
 OPTIMIZE_ADX_VALUES = [
     20,
+    21,
     22,
+    23,
+    24,
     25,
-    28,
-    30,
 ]
