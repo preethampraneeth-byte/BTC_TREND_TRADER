@@ -1,13 +1,16 @@
 """
-BTC Trend Trader v3.2.3
+BTC Trend Trader v3.2.4
 Optimization Engine
 
 Runs parameter optimization using the existing
 strategy, backtester and performance report.
 
-New in v3.2.3
--------------
-- CSV export of optimization results
+Features
+--------
+- Parameter optimization
+- Console report
+- CSV export
+- Automatic ranking
 """
 
 from __future__ import annotations
@@ -179,6 +182,73 @@ class Optimizer:
         print(output_file)
 
     # -------------------------------------------------
+    def rank_results(self):
+
+        if not self.results:
+            return
+
+        best_pf = max(
+            self.results,
+            key=lambda x: x["Profit Factor"],
+        )
+
+        best_return = max(
+            self.results,
+            key=lambda x: x["Return (%)"],
+        )
+
+        best_win_rate = max(
+            self.results,
+            key=lambda x: x["Win Rate (%)"],
+        )
+
+        lowest_drawdown = min(
+            self.results,
+            key=lambda x: x["Maximum Drawdown (%)"],
+        )
+
+        most_trades = max(
+            self.results,
+            key=lambda x: x["Trades"],
+        )
+
+        print()
+        print("=" * 70)
+        print("BEST CONFIGURATIONS")
+        print("=" * 70)
+
+        print("\nBest Profit Factor")
+        print("-" * 30)
+        print(f"ADX Threshold : {best_pf['ADX']}")
+        print(f"Profit Factor : {best_pf['Profit Factor']}")
+
+        print("\nBest Return")
+        print("-" * 30)
+        print(f"ADX Threshold : {best_return['ADX']}")
+        print(f"Return (%)    : {best_return['Return (%)']}")
+
+        print("\nLowest Drawdown")
+        print("-" * 30)
+        print(f"ADX Threshold : {lowest_drawdown['ADX']}")
+        print(
+            f"Drawdown (%)  : "
+            f"{lowest_drawdown['Maximum Drawdown (%)']}"
+        )
+
+        print("\nHighest Win Rate")
+        print("-" * 30)
+        print(f"ADX Threshold : {best_win_rate['ADX']}")
+        print(
+            f"Win Rate (%)  : "
+            f"{best_win_rate['Win Rate (%)']}"
+        )
+
+        print("\nMost Trades")
+        print("-" * 30)
+        print(f"ADX Threshold : {most_trades['ADX']}")
+        print(f"Trades        : {most_trades['Trades']}")
+
+    # -------------------------------------------------
 
     def run(self):
 
@@ -216,3 +286,5 @@ class Optimizer:
         self.print_results()
 
         self.save_results()
+
+        self.rank_results()
