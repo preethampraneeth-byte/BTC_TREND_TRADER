@@ -1,12 +1,20 @@
 """
-BTC Trend Trader v3.2.2
+BTC Trend Trader v3.2.3
 Optimization Engine
 
 Runs parameter optimization using the existing
 strategy, backtester and performance report.
+
+New in v3.2.3
+-------------
+- CSV export of optimization results
 """
 
 from __future__ import annotations
+
+import os
+
+import pandas as pd
 
 import config
 
@@ -94,13 +102,13 @@ class Optimizer:
             "Profit Factor":
                 performance["Profit Factor"],
 
-            "Return":
+            "Return (%)":
                 performance["Return (%)"],
 
-            "Drawdown":
+            "Maximum Drawdown (%)":
                 performance["Maximum Drawdown (%)"],
 
-            "Win Rate":
+            "Win Rate (%)":
                 performance["Win Rate (%)"],
 
             "Trades":
@@ -112,7 +120,7 @@ class Optimizer:
 
     def print_results(self):
 
-        print("\n")
+        print()
         print("=" * 70)
         print("OPTIMIZATION RESULTS")
         print("=" * 70)
@@ -136,15 +144,39 @@ class Optimizer:
 
                 f"{str(result['Profit Factor']):<10}"
 
-                f"{result['Return']:<12}"
+                f"{result['Return (%)']:<12}"
 
-                f"{result['Drawdown']:<10}"
+                f"{result['Maximum Drawdown (%)']:<10}"
 
-                f"{result['Win Rate']:<10}"
+                f"{result['Win Rate (%)']:<10}"
 
                 f"{result['Trades']:<10}"
 
             )
+
+    # -------------------------------------------------
+
+    def save_results(self):
+
+        os.makedirs(
+            "results",
+            exist_ok=True,
+        )
+
+        df = pd.DataFrame(self.results)
+
+        output_file = os.path.join(
+            "results",
+            "optimization_results.csv",
+        )
+
+        df.to_csv(
+            output_file,
+            index=False,
+        )
+
+        print("\nResults successfully saved to:")
+        print(output_file)
 
     # -------------------------------------------------
 
@@ -182,3 +214,5 @@ class Optimizer:
             config.ADX_THRESHOLD = original_adx
 
         self.print_results()
+
+        self.save_results()
