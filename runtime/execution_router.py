@@ -1,0 +1,58 @@
+"""
+BTC Trend Trader Professional v4
+Execution Router
+"""
+
+from __future__ import annotations
+
+import config
+
+from runtime.backtest_runtime import BacktestRuntime
+from runtime.paper_runtime import PaperRuntime
+from runtime.live_runtime import LiveRuntime
+
+
+class ExecutionRouter:
+    """
+    Selects the runtime according to
+    config.EXECUTION_MODE.
+    """
+
+    def __init__(self):
+
+        self._runtime = None
+
+    # ---------------------------------------------------------
+
+    def runtime(self):
+
+        if self._runtime is not None:
+            return self._runtime
+
+        mode = config.EXECUTION_MODE.upper()
+
+        if mode == "BACKTEST":
+
+            self._runtime = BacktestRuntime()
+
+        elif mode == "PAPER":
+
+            self._runtime = PaperRuntime()
+
+        elif mode == "LIVE":
+
+            self._runtime = LiveRuntime()
+
+        else:
+
+            raise ValueError(
+                f"Unsupported EXECUTION_MODE: {config.EXECUTION_MODE}"
+            )
+
+        return self._runtime
+
+    # ---------------------------------------------------------
+
+    def run(self):
+
+        return self.runtime().run()
