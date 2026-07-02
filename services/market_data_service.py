@@ -9,12 +9,17 @@ import config
 
 from core.market_data import MarketData
 from core.mt5_connector import MT5Connector
+from core.indicators import Indicators
+from core.strategy import Strategy
 
 
 class MarketDataService:
     """
-    Loads historical market data from either
-    CSV or MetaTrader 5.
+    Responsible for:
+
+    - Loading market data
+    - Preparing market data
+      (Indicators + Strategy)
     """
 
     def __init__(self) -> None:
@@ -55,7 +60,22 @@ class MarketDataService:
 
     # -------------------------------------------------
 
-    def shutdown(self):
+    def prepare(self, candles):
+
+        indicators = Indicators()
+
+        candles = indicators.calculate(candles)
+
+        strategy = Strategy()
+
+        candles = strategy.generate_signals(candles)
+
+        return candles
+
+    # -------------------------------------------------
+
+    def shutdown(self) -> None:
 
         if self.connector is not None:
+
             self.connector.disconnect()

@@ -10,9 +10,14 @@ from backtesting.performance_report import PerformanceReport
 
 class ReportingService:
     """
-    Generates performance reports from
-    completed backtests.
+    Service responsible for generating performance reports.
     """
+
+    def __init__(self) -> None:
+
+        self.report = PerformanceReport()
+
+    # -------------------------------------------------
 
     def generate(
         self,
@@ -20,7 +25,7 @@ class ReportingService:
         statistics,
     ):
 
-        return PerformanceReport().generate(
+        return self.report.generate(
             trades=trades,
             starting_balance=statistics["starting_balance"],
             ending_balance=statistics["ending_balance"],

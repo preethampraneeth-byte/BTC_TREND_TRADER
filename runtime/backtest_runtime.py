@@ -6,29 +6,18 @@ Backtest Runtime
 from __future__ import annotations
 
 from services.market_data_service import MarketDataService
-from services.backtest_service import BacktestService
 from services.diagnostics_service import DiagnosticsService
+from services.backtest_service import BacktestService
+from services.reporting_service import ReportingService
+from services.dashboard_service import DashboardService
 
-from core.indicators import Indicators
-from core.strategy import Strategy
-
-from backtesting.performance_report import PerformanceReport
-
-from dashboard.dashboard import Dashboard
+from analytics.analytics_service import AnalyticsService
 
 
 class BacktestRuntime:
     """
-    Executes the complete backtesting workflow.
-
-    Current migration status
-
-    ✓ MarketDataService
-    ✓ Strategy preparation
-    ✓ DiagnosticsService
-    ✓ BacktestService
-    ✓ Performance reporting
-    ✓ Dashboard orchestration
+    Executes the complete backtesting workflow using
+    application services.
     """
 
     def __init__(self) -> None:
@@ -36,43 +25,41 @@ class BacktestRuntime:
         self.name = "BACKTEST"
 
         self.market_data_service = MarketDataService()
-        self.backtest_service = BacktestService()
+
         self.diagnostics_service = DiagnosticsService()
 
+        self.backtest_service = BacktestService()
+
+        self.reporting_service = ReportingService()
+
+        self.dashboard_service = DashboardService()
+
+        self.analytics_service = AnalyticsService()
+
     # -------------------------------------------------
-    # Indicator + Strategy
+
+    def load_market_data(self):
+
+        return self.market_data_service.load()
+
     # -------------------------------------------------
 
     def prepare_market(self, candles):
 
-        indicators = Indicators()
+        return self.market_data_service.prepare(candles)
 
-        candles = indicators.calculate(candles)
-
-        strategy = Strategy()
-
-        candles = strategy.generate_signals(candles)
-
-        return candles
-
-    # -------------------------------------------------
-    # Diagnostics
     # -------------------------------------------------
 
     def build_diagnostics(self, candles):
 
-        return self.diagnostics_service.build(candles)
+        return self.diagnostics_service.generate(candles)
 
-    # -------------------------------------------------
-    # Backtester
     # -------------------------------------------------
 
     def run_backtest(self, candles):
 
         return self.backtest_service.run(candles)
 
-    # -------------------------------------------------
-    # Performance Report
     # -------------------------------------------------
 
     def generate_performance_report(
@@ -81,15 +68,20 @@ class BacktestRuntime:
         statistics,
     ):
 
-        return PerformanceReport().generate(
-            trades=trades,
-            starting_balance=statistics["starting_balance"],
-            ending_balance=statistics["ending_balance"],
-            equity_curve=statistics["equity_curve"],
+        return self.reporting_service.generate(
+            trades,
+            statistics,
         )
 
     # -------------------------------------------------
-    # Dashboard
+
+    def generate_analytics(
+        self,
+        trades,
+    ):
+
+        return self.analytics_service.generate(trades)
+
     # -------------------------------------------------
 
     def show_dashboard(
@@ -100,30 +92,24 @@ class BacktestRuntime:
         diagnostics,
     ):
 
-        dashboard = Dashboard()
-
-        dashboard.show_complete_dashboard(
-            summary=summary,
-            performance=performance,
-            trades=trades,
-            diagnostics=diagnostics,
+        self.dashboard_service.show(
+            summary,
+            performance,
+            trades,
+            diagnostics,
         )
 
     # -------------------------------------------------
-    # Cleanup
-    # -------------------------------------------------
 
-    def shutdown(self) -> None:
+    def shutdown(self):
 
         self.market_data_service.shutdown()
 
     # -------------------------------------------------
-    # Runtime
-    # -------------------------------------------------
 
-    def run(self) -> None:
+    def run(self):
 
-        candles = self.market_data_service.load()
+        candles = self.load_market_data()
 
         candles = self.prepare_market(candles)
 
@@ -135,6 +121,18 @@ class BacktestRuntime:
             results["trades"],
             results["statistics"],
         )
+
+        #
+        # Analytics are now produced through AnalyticsService.
+        # They are intentionally not displayed yet.
+        #
+        analytics = self.generate_analytics(
+            results["trades"],
+        )
+
+        # Prevent "unused variable" warnings while preparing
+        # for future dashboard integration.
+        _ = analytics
 
         self.show_dashboard(
             results["summary"],

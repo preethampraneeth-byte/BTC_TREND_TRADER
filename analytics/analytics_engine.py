@@ -11,6 +11,8 @@ from analytics.performance_metrics import PerformanceMetrics
 from analytics.trade_statistics import TradeStatistics
 from analytics.risk_statistics import RiskStatistics
 from analytics.equity_curve import EquityCurve
+from analytics.drawdown import Drawdown
+from analytics.streak_analysis import StreakAnalysis
 
 
 class AnalyticsEngine:
@@ -24,9 +26,18 @@ class AnalyticsEngine:
     def __init__(self) -> None:
 
         self.performance = PerformanceMetrics()
+
         self.trade_statistics = TradeStatistics()
+
         self.risk_statistics = RiskStatistics()
+
         self.equity_curve = EquityCurve()
+
+        self.drawdown = Drawdown()
+
+        self.streak_analysis = StreakAnalysis()
+
+    # -------------------------------------------------
 
     def generate(
         self,
@@ -37,8 +48,23 @@ class AnalyticsEngine:
         """
 
         return {
-            "performance": self.performance.calculate(trades),
-            "trade_statistics": self.trade_statistics.calculate(trades),
-            "risk_statistics": self.risk_statistics.calculate(trades),
-            "equity_curve": self.equity_curve.calculate(trades),
+
+            "performance":
+                self.performance.calculate(trades),
+
+            "trade_statistics":
+                self.trade_statistics.calculate(trades),
+
+            "risk_statistics":
+                self.risk_statistics.calculate(trades),
+
+            "equity_curve":
+                self.equity_curve.calculate(trades),
+
+            "drawdown":
+                self.drawdown.calculate(trades),
+
+            "streak_analysis":
+                self.streak_analysis.calculate(trades),
+
         }
