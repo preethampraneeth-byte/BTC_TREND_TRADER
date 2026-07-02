@@ -1,32 +1,131 @@
 """
-BTC Trend Trader v1.0
+BTC Trend Trader Professional v4
 Dashboard
-
-Displays backtesting and trading statistics
-in a clean console format.
 """
 
 from __future__ import annotations
 
-from typing import List
+from typing import Any, Dict, List, Optional
+
+from dashboard.dashboard_controller import DashboardController
+
+from dashboard.widgets.account_panel import AccountPanel
+from dashboard.widgets.position_panel import PositionPanel
+from dashboard.widgets.order_panel import OrderPanel
+from dashboard.widgets.risk_panel import RiskPanel
+from dashboard.widgets.history_panel import HistoryPanel
+from dashboard.widgets.event_panel import EventPanel
+from dashboard.widgets.performance_panel import PerformancePanel
+from dashboard.widgets.status_panel import StatusPanel
+from dashboard.widgets.dashboard_layout import DashboardLayout
 
 
 class Dashboard:
+    """
+    Professional console dashboard.
 
-    def __init__(self):
-        pass
+    Backward compatible with Dashboard v1.
+    """
+
+    def __init__(
+        self,
+        controller: Optional[DashboardController] = None,
+    ) -> None:
+
+        self.controller = controller or DashboardController()
+
+        self.account_panel = AccountPanel()
+        self.position_panel = PositionPanel()
+        self.order_panel = OrderPanel()
+        self.risk_panel = RiskPanel()
+        self.history_panel = HistoryPanel()
+        self.event_panel = EventPanel()
+        self.performance_panel = PerformancePanel()
+        self.status_panel = StatusPanel()
+
+        self.layout = DashboardLayout(
+            self.account_panel,
+            self.position_panel,
+            self.order_panel,
+            self.risk_panel,
+            self.history_panel,
+            self.event_panel,
+            self.performance_panel,
+            self.status_panel,
+        )
 
     # ---------------------------------------------------------
+
+    def refresh(self) -> None:
+
+        self.controller.refresh()
+
+        self.account_panel.update(
+            self.controller.get_account()
+        )
+
+        self.position_panel.update(
+            self.controller.get_positions()
+        )
+
+        self.order_panel.update(
+            self.controller.get_orders()
+        )
+
+        self.risk_panel.update(
+            self.controller.get_risk()
+        )
+
+        self.history_panel.update(
+            self.controller.get_history()
+        )
+
+        self.event_panel.update(
+            self.controller.get_events()
+        )
+
+        self.performance_panel.update(
+            self.controller.get_statistics()
+        )
+
+        self.status_panel.update(
+            {
+                "Controller": "Online",
+                "Dashboard": "Ready",
+            }
+        )
+
+    # ---------------------------------------------------------
+
+    def render(self) -> None:
+
+        self.refresh()
+        self.layout.render()
+
+    # ---------------------------------------------------------
+
+    def run(self) -> None:
+
+        self.render()
+
+    # =========================================================
+    #
+    # Legacy Dashboard API (Backward Compatibility)
+    #
+    # =========================================================
 
     def show_header(self):
 
         print("\n" + "=" * 60)
-        print("           BTC TREND TRADER v1.0 DASHBOARD")
+        print("           BTC TREND TRADER v4 DASHBOARD")
         print("=" * 60)
 
     # ---------------------------------------------------------
 
-    def show_summary(self, summary: dict):
+    def show_summary(
+        self,
+        summary: Dict[str, Any],
+    ):
 
         print("\nMARKET SUMMARY")
         print("-" * 60)
@@ -36,7 +135,10 @@ class Dashboard:
 
     # ---------------------------------------------------------
 
-    def show_diagnostics(self, diagnostics: dict):
+    def show_diagnostics(
+        self,
+        diagnostics: Dict[str, Any],
+    ):
 
         print("\nSTRATEGY DIAGNOSTICS")
         print("-" * 60)
@@ -46,7 +148,10 @@ class Dashboard:
 
     # ---------------------------------------------------------
 
-    def show_performance(self, performance: dict):
+    def show_performance(
+        self,
+        performance: Dict[str, Any],
+    ):
 
         print("\nPERFORMANCE REPORT")
         print("-" * 60)
@@ -58,7 +163,7 @@ class Dashboard:
 
     def show_recent_trades(
         self,
-        trades: List,
+        trades: List[Any],
         limit: int = 10,
     ):
 
@@ -69,35 +174,37 @@ class Dashboard:
             print("No trades available.")
             return
 
-        recent = trades[-limit:]
-
-        for i, trade in enumerate(recent, start=1):
+        for i, trade in enumerate(trades[-limit:], start=1):
 
             print(f"\nTrade #{i}")
 
-            print(f"Direction   : {trade.direction}")
-            print(f"Entry Time  : {trade.entry_time}")
-            print(f"Exit Time   : {trade.exit_time}")
+            for attribute in (
+                "direction",
+                "entry_time",
+                "exit_time",
+                "entry_price",
+                "exit_price",
+                "stop_loss",
+                "take_profit",
+                "lot_size",
+                "profit",
+                "result",
+            ):
 
-            print(f"Entry Price : {trade.entry_price}")
-            print(f"Exit Price  : {trade.exit_price}")
-
-            print(f"Stop Loss   : {trade.stop_loss}")
-            print(f"Take Profit : {trade.take_profit}")
-
-            print(f"Lot Size    : {trade.lot_size}")
-
-            print(f"Profit      : {round(trade.profit, 2)}")
-            print(f"Result      : {trade.result}")
+                if hasattr(trade, attribute):
+                    print(
+                        f"{attribute.replace('_', ' ').title():<15}: "
+                        f"{getattr(trade, attribute)}"
+                    )
 
     # ---------------------------------------------------------
 
     def show_complete_dashboard(
         self,
-        summary: dict,
-        performance: dict,
-        trades: List,
-        diagnostics: dict | None = None,
+        summary: Dict[str, Any],
+        performance: Dict[str, Any],
+        trades: List[Any],
+        diagnostics: Optional[Dict[str, Any]] = None,
     ):
 
         self.show_header()

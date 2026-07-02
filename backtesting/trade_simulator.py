@@ -1,7 +1,7 @@
 """
 trade_simulator.py
 
-Trade Simulator v2.5
+Trade Simulator v3.4.1
 
 Responsibilities
 ----------------
@@ -11,6 +11,7 @@ Responsibilities
 - Track balance
 - Track equity curve
 - Calculate PnL
+- Prepare for break-even & trailing stop
 """
 
 from dataclasses import dataclass
@@ -48,13 +49,24 @@ class PendingOrder:
 
 @dataclass
 class SimulatedTrade:
+
+    # -----------------------------
+    # Trade Information
+    # -----------------------------
+
     direction: str
+
     entry_price: float
     stop_loss: float
     take_profit: float
+
     lot_size: float
 
     entry_time: str
+
+    # -----------------------------
+    # Trade State
+    # -----------------------------
 
     status: TradeStatus = TradeStatus.OPEN
 
@@ -62,7 +74,22 @@ class SimulatedTrade:
     exit_time: Optional[str] = None
 
     profit: float = 0.0
+
     result: Optional[str] = None
+
+    # -----------------------------
+    # Trade Management
+    # -----------------------------
+
+    initial_stop_loss: Optional[float] = None
+
+    break_even_activated: bool = False
+
+    trailing_stop_activated: bool = False
+
+    highest_price: Optional[float] = None
+
+    lowest_price: Optional[float] = None
 
 
 # =========================================================
@@ -76,7 +103,6 @@ class TradeSimulator:
         self.starting_balance = starting_balance
         self.balance = starting_balance
 
-        # NEW
         self.equity_curve = [starting_balance]
 
         self.pending_trade: Optional[PendingOrder] = None
@@ -146,6 +172,12 @@ class TradeSimulator:
             lot_size=order.lot_size,
             entry_time=entry_time,
             status=TradeStatus.OPEN,
+
+            initial_stop_loss=order.stop_loss,
+
+            highest_price=entry_price,
+
+            lowest_price=entry_price,
         )
 
         self.pending_trade = None
@@ -175,12 +207,17 @@ class TradeSimulator:
             lot_size=lot_size,
             entry_time=entry_time,
             status=TradeStatus.OPEN,
+
+            initial_stop_loss=stop_loss,
+
+            highest_price=entry_price,
+
+            lowest_price=entry_price,
         )
 
         return True
 
     # -----------------------------------------------------
-
     def update_trade(
         self,
         high,
@@ -193,6 +230,24 @@ class TradeSimulator:
             return None
 
         trade = self.current_trade
+
+        # ---------------------------------------------
+        # Track highest / lowest price reached
+        # ---------------------------------------------
+
+        trade.highest_price = max(
+            trade.highest_price,
+            high,
+        )
+
+        trade.lowest_price = min(
+            trade.lowest_price,
+            low,
+        )
+
+        # ---------------------------------------------
+        # BUY
+        # ---------------------------------------------
 
         if trade.direction.upper() == "BUY":
 
@@ -215,6 +270,10 @@ class TradeSimulator:
                 )
 
                 return "WIN"
+
+        # ---------------------------------------------
+        # SELL
+        # ---------------------------------------------
 
         else:
 
@@ -282,7 +341,6 @@ class TradeSimulator:
 
         self.balance += trade.profit
 
-        # NEW
         self.equity_curve.append(self.balance)
 
         self.trade_history.append(trade)
@@ -338,15 +396,30 @@ class TradeSimulator:
             if trade.result == "LOSS"
         )
 
-        net_profit = self.balance - self.starting_balance
+        net_profit = (
+            self.balance
+            - self.starting_balance
+        )
 
         return {
+
             "starting_balance": self.starting_balance,
+
             "ending_balance": self.balance,
+
             "net_profit": net_profit,
+
             "total_trades": total,
+
             "wins": wins,
+
             "losses": losses,
-            "win_rate": round((wins / total) * 100, 2),
+
+            "win_rate": round(
+                (wins / total) * 100,
+                2,
+            ),
+
             "equity_curve": self.equity_curve,
+
         }

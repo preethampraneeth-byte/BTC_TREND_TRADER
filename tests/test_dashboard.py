@@ -1,40 +1,78 @@
-from backtesting.trade_simulator import TradeSimulator
-from backtesting.performance_report import PerformanceReport
+"""
+BTC Trend Trader Professional v4
+Dashboard Tests
+"""
+
+import unittest
+
 from dashboard.dashboard import Dashboard
+from dashboard.dashboard_controller import DashboardController
 
-sim = TradeSimulator(10000)
 
-sim.open_trade(
-    direction="BUY",
-    entry_price=100,
-    stop_loss=95,
-    take_profit=110,
-    lot_size=1,
-    entry_time="2025-01-01 00:00",
-)
+class TestDashboardController(unittest.TestCase):
 
-sim.update_trade(
-    high=111,
-    low=99,
-    close=110,
-    current_time="2025-01-01 01:00",
-)
+    def setUp(self):
 
-summary = {
-    "Total Candles": 2,
-    "BUY Signals": 1,
-    "SELL Signals": 0,
-    "HOLD Signals": 1,
-}
+        self.controller = DashboardController()
 
-performance = PerformanceReport().generate(
-    sim.get_trade_history(),
-    10000,
-    sim.get_balance(),
-)
+    def test_refresh(self):
 
-Dashboard().show_complete_dashboard(
-    summary,
-    performance,
-    sim.get_trade_history(),
-)
+        self.controller.refresh()
+
+        self.assertIsInstance(
+            self.controller.get_account(),
+            dict,
+        )
+
+        self.assertIsInstance(
+            self.controller.get_positions(),
+            list,
+        )
+
+        self.assertIsInstance(
+            self.controller.get_orders(),
+            list,
+        )
+
+        self.assertIsInstance(
+            self.controller.get_history(),
+            list,
+        )
+
+        self.assertIsInstance(
+            self.controller.get_events(),
+            list,
+        )
+
+        self.assertIsInstance(
+            self.controller.get_risk(),
+            dict,
+        )
+
+        self.assertIsInstance(
+            self.controller.get_statistics(),
+            dict,
+        )
+
+
+class TestDashboard(unittest.TestCase):
+
+    def setUp(self):
+
+        self.dashboard = Dashboard()
+
+    def test_refresh(self):
+
+        self.dashboard.refresh()
+
+    def test_render(self):
+
+        self.dashboard.render()
+
+    def test_run(self):
+
+        self.dashboard.run()
+
+
+if __name__ == "__main__":
+    unittest.main()

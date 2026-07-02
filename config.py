@@ -1,13 +1,23 @@
 """
-BTC Trend Trader v1.0
-Configuration File
+BTC Trend Trader
+Version 4.0 Configuration
+
+This file contains all configurable parameters used by the bot.
+
+Version 4 additions
+-------------------
+✓ Break-even settings
+✓ ATR trailing stop settings
+✓ Partial profit settings
+✓ Time exit settings
+✓ Feature toggles
 """
 
 # ======================================================
 # MetaTrader 5 Settings
 # ======================================================
 
-LOGIN = 318045825          # Your Demo Account
+LOGIN = 318045825
 PASSWORD = "Trinity@2106"
 SERVER = "XMGlobal-MT5 7"
 
@@ -25,19 +35,20 @@ TIMEFRAME = "H1"
 # Data Source
 # ======================================================
 
-# True  = Load historical data from CSV
+# True = Load historical data from CSV
 # False = Download historical data from MT5
 USE_CSV_DATA = True
 
-# Historical dataset used for reproducible backtesting
 CSV_DATA_FILE = "data/BTCUSD_H1_500.csv"
 
 # ======================================================
 # Risk Settings
 # ======================================================
 
-RISK_PER_TRADE = 0.01      # 1%
+# Risk per trade (1%)
+RISK_PER_TRADE = 0.01
 
+# Maximum simultaneous trades
 MAX_OPEN_TRADES = 1
 
 # ======================================================
@@ -48,9 +59,7 @@ EMA_FAST = 50
 EMA_SLOW = 200
 
 ATR_PERIOD = 14
-
 RSI_PERIOD = 14
-
 ADX_PERIOD = 14
 
 # ======================================================
@@ -68,6 +77,7 @@ RSI_SELL_LEVEL = 50
 
 ATR_SL_MULTIPLIER = 2.0
 
+# Risk : Reward
 RR_RATIO = 2.0
 
 # ======================================================
@@ -86,22 +96,17 @@ TRADE_LOG = "logs/trades.csv"
 
 ERROR_LOG = "logs/errors.log"
 
+LOG_TO_CSV = True
+
 # ======================================================
 # Trading Mode
 # ======================================================
 
-# Safety switch.
-# When True, the bot will NEVER send an order.
+# Safety switch
 DRY_RUN = True
 
-# Live trading is disabled by default.
+# Live trading disabled by default
 ALLOW_LIVE_TRADING = False
-
-# ======================================================
-# CSV Logging
-# ======================================================
-
-LOG_TO_CSV = True
 
 # ======================================================
 # Order Settings
@@ -109,11 +114,9 @@ LOG_TO_CSV = True
 
 MAGIC_NUMBER = 20260627
 
-# Maximum price deviation (points)
 DEVIATION = 20
 
-# Order comment shown in MT5
-ORDER_COMMENT = "BTC Trend Trader v1.0"
+ORDER_COMMENT = "BTC Trend Trader v4.0"
 
 # ======================================================
 # Trend Strength Filter
@@ -122,26 +125,65 @@ ORDER_COMMENT = "BTC Trend Trader v1.0"
 EMA_DISTANCE_ATR_MULTIPLIER = 0.25
 
 # ======================================================
-# Trade Management
+# Version 4 - Trade Management
 # ======================================================
 
-# Enable break-even stop
+# Master switch
+ENABLE_TRADE_MANAGEMENT = True
+
+# ------------------------------------------------------
+# Break-even
+# ------------------------------------------------------
+
 ENABLE_BREAK_EVEN = True
 
-# Move stop to entry after this many R multiples
+# Move stop-loss to entry after this R multiple
 BREAK_EVEN_R = 1.0
 
-# Enable ATR trailing stop
+# Lock in a small profit after moving to break-even
+BREAK_EVEN_OFFSET = 0.0
+
+# ------------------------------------------------------
+# ATR Trailing Stop
+# ------------------------------------------------------
+
 ENABLE_TRAILING_STOP = False
 
-# ATR multiplier for trailing stop
 TRAILING_STOP_ATR = 1.5
+
+# Minimum profit before trailing starts (R multiple)
+TRAILING_START_R = 1.5
+
+# ------------------------------------------------------
+# Partial Profit Taking
+# ------------------------------------------------------
+
+ENABLE_PARTIAL_TP = False
+
+PARTIAL_TP_LEVELS = [
+    1.0,
+    2.0,
+    3.0,
+]
+
+PARTIAL_TP_PERCENTAGES = [
+    25,
+    25,
+    50,
+]
+
+# ------------------------------------------------------
+# Time Exit
+# ------------------------------------------------------
+
+ENABLE_TIME_EXIT = False
+
+# Close trade after this many completed candles
+MAX_BARS_IN_TRADE = 48
 
 # ======================================================
 # Optimization Settings
 # ======================================================
-
-# Parameter values tested by optimizer.py
 
 OPTIMIZE_ADX_VALUES = [
     20,
@@ -150,4 +192,14 @@ OPTIMIZE_ADX_VALUES = [
     23,
     24,
     25,
+]
+
+OPTIMIZE_EMA_DISTANCE_VALUES = [
+    0.10,
+    0.15,
+    0.20,
+    0.25,
+    0.30,
+    0.35,
+    0.40,
 ]
