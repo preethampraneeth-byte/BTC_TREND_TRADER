@@ -90,13 +90,15 @@ class BacktestRuntime:
         performance,
         trades,
         diagnostics,
+        analytics,
     ):
 
         self.dashboard_service.show(
-            summary,
-            performance,
-            trades,
-            diagnostics,
+            summary=summary,
+            performance=performance,
+            trades=trades,
+            diagnostics=diagnostics,
+            analytics=analytics,
         )
 
     # -------------------------------------------------
@@ -122,23 +124,16 @@ class BacktestRuntime:
             results["statistics"],
         )
 
-        #
-        # Analytics are now produced through AnalyticsService.
-        # They are intentionally not displayed yet.
-        #
         analytics = self.generate_analytics(
             results["trades"],
         )
 
-        # Prevent "unused variable" warnings while preparing
-        # for future dashboard integration.
-        _ = analytics
-
         self.show_dashboard(
-            results["summary"],
-            performance,
-            results["trades"],
-            diagnostics,
+            summary=results["summary"],
+            performance=performance,
+            trades=results["trades"],
+            diagnostics=diagnostics,
+            analytics=analytics,
         )
 
         self.shutdown()

@@ -25,6 +25,7 @@ class DashboardService:
         performance,
         trades,
         diagnostics,
+        analytics=None,
     ) -> None:
 
         self.dashboard.show_complete_dashboard(
@@ -32,4 +33,5 @@ class DashboardService:
             performance=performance,
             trades=trades,
             diagnostics=diagnostics,
+            analytics=analytics,
         )
