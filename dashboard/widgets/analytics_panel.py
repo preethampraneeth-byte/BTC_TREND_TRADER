@@ -5,6 +5,8 @@ Analytics Panel
 
 from __future__ import annotations
 
+from analytics.duration_formatter import DurationFormatter
+
 
 class AnalyticsPanel:
     """
@@ -14,6 +16,8 @@ class AnalyticsPanel:
     def __init__(self):
 
         self.analytics = {}
+
+        self.duration_formatter = DurationFormatter()
 
     # -------------------------------------------------
 
@@ -95,4 +99,41 @@ class AnalyticsPanel:
         print(
             f"Longest Loss Streak     : "
             f"{streak.get('longest_loss_streak', 0)}"
+        )
+
+        #
+        # Trade Duration
+        #
+
+        duration = self.analytics.get(
+            "trade_duration",
+            {},
+        )
+
+        print("\nTRADE DURATION")
+        print("-" * 60)
+
+        print(
+            f"Average Duration        : "
+            f"{self.duration_formatter.format(duration.get('average_duration', 0))}"
+        )
+
+        print(
+            f"Shortest Trade          : "
+            f"{self.duration_formatter.format(duration.get('shortest_duration', 0))}"
+        )
+
+        print(
+            f"Longest Trade           : "
+            f"{self.duration_formatter.format(duration.get('longest_duration', 0))}"
+        )
+
+        print(
+            f"Average Winning Trade   : "
+            f"{self.duration_formatter.format(duration.get('average_winning_duration', 0))}"
+        )
+
+        print(
+            f"Average Losing Trade    : "
+            f"{self.duration_formatter.format(duration.get('average_losing_duration', 0))}"
         )
