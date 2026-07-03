@@ -15,6 +15,12 @@ from analytics.drawdown import Drawdown
 from analytics.streak_analysis import StreakAnalysis
 from analytics.monthly_returns import MonthlyReturns
 from analytics.trade_duration import TradeDuration
+from analytics.time_analysis import TimeAnalysis
+from analytics.weekday_analysis import WeekdayAnalysis
+
+from analytics.analytics_module_registry import (
+    AnalyticsModuleRegistry,
+)
 
 
 class AnalyticsEngine:
@@ -27,21 +33,61 @@ class AnalyticsEngine:
 
     def __init__(self) -> None:
 
-        self.performance = PerformanceMetrics()
+        self.registry = AnalyticsModuleRegistry()
 
-        self.trade_statistics = TradeStatistics()
+        #
+        # Register analytics modules
+        #
 
-        self.risk_statistics = RiskStatistics()
+        self.registry.register(
+            "performance",
+            PerformanceMetrics(),
+        )
 
-        self.equity_curve = EquityCurve()
+        self.registry.register(
+            "trade_statistics",
+            TradeStatistics(),
+        )
 
-        self.drawdown = Drawdown()
+        self.registry.register(
+            "risk_statistics",
+            RiskStatistics(),
+        )
 
-        self.streak_analysis = StreakAnalysis()
+        self.registry.register(
+            "equity_curve",
+            EquityCurve(),
+        )
 
-        self.monthly_returns = MonthlyReturns()
+        self.registry.register(
+            "drawdown",
+            Drawdown(),
+        )
 
-        self.trade_duration = TradeDuration()
+        self.registry.register(
+            "streak_analysis",
+            StreakAnalysis(),
+        )
+
+        self.registry.register(
+            "monthly_returns",
+            MonthlyReturns(),
+        )
+
+        self.registry.register(
+            "trade_duration",
+            TradeDuration(),
+        )
+
+        self.registry.register(
+            "time_analysis",
+            TimeAnalysis(),
+        )
+
+        self.registry.register(
+            "weekday_analysis",
+            WeekdayAnalysis(),
+        )
 
     # -------------------------------------------------
 
@@ -56,86 +102,39 @@ class AnalyticsEngine:
 
         analytics: Dict[str, Any] = {}
 
-        #
-        # Performance
-        #
+        for name, module in self.registry.modules():
 
-        analytics["performance"] = (
-            self.performance.calculate(
-                trades,
-            )
-        )
+            #
+            # Modules requiring starting balance
+            #
 
-        #
-        # Trade Statistics
-        #
+            if name in (
+                "drawdown",
+                "monthly_returns",
+            ):
 
-        analytics["trade_statistics"] = (
-            self.trade_statistics.calculate(
-                trades,
-            )
-        )
+                if name == "drawdown":
 
-        #
-        # Risk Statistics
-        #
+                    analytics[name] = module.calculate(
+                        trades,
+                        starting_equity=starting_balance,
+                    )
 
-        analytics["risk_statistics"] = (
-            self.risk_statistics.calculate(
-                trades,
-            )
-        )
+                else:
 
-        #
-        # Equity Curve
-        #
+                    analytics[name] = module.calculate(
+                        trades,
+                        starting_balance=starting_balance,
+                    )
 
-        analytics["equity_curve"] = (
-            self.equity_curve.calculate(
-                trades,
-            )
-        )
+            #
+            # Standard analytics modules
+            #
 
-        #
-        # Drawdown
-        #
+            else:
 
-        analytics["drawdown"] = (
-            self.drawdown.calculate(
-                trades,
-                starting_equity=starting_balance,
-            )
-        )
-
-        #
-        # Streak Analysis
-        #
-
-        analytics["streak_analysis"] = (
-            self.streak_analysis.calculate(
-                trades,
-            )
-        )
-
-        #
-        # Monthly Returns
-        #
-
-        analytics["monthly_returns"] = (
-            self.monthly_returns.calculate(
-                trades,
-                starting_balance=starting_balance,
-            )
-        )
-
-        #
-        # Trade Duration
-        #
-
-        analytics["trade_duration"] = (
-            self.trade_duration.calculate(
-                trades,
-            )
-        )
+                analytics[name] = module.calculate(
+                    trades,
+                )
 
         return analytics
