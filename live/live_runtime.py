@@ -66,6 +66,10 @@ class LiveRuntime:
 
         candle_time = latest["Time"]
 
+        #
+        # Skip already processed candle
+        #
+
         if candle_time == self.last_processed_candle:
 
             return
@@ -77,24 +81,24 @@ class LiveRuntime:
         print(f"New Candle : {candle_time}")
 
         #
-        # Update existing trade
+        # -------------------------------------------------
+        # Update Existing Position
+        # -------------------------------------------------
         #
 
         closed_trade = self.executor.update(
 
-            high=latest["High"],
+            high=float(latest["High"]),
 
-            low=latest["Low"],
+            low=float(latest["Low"]),
 
-            close=latest["Close"],
+            close=float(latest["Close"]),
 
             timestamp=candle_time,
 
         )
 
         if closed_trade is not None:
-
-            print()
 
             print("✓ Paper trade closed.")
 
@@ -106,9 +110,11 @@ class LiveRuntime:
 
             print(f"Equity     : {self.executor.get_equity():.2f}")
 
-        signal = latest["Signal"]
-
-        print(f"Signal     : {signal}")
+        #
+        # -------------------------------------------------
+        # Existing Position
+        # -------------------------------------------------
+        #
 
         if self.executor.has_open_trade():
 
@@ -120,7 +126,17 @@ class LiveRuntime:
 
             return
 
+        #
+        # -------------------------------------------------
+        # Strategy Signal
+        # -------------------------------------------------
+        #
+
+        signal = latest["Signal"]
+
         if signal not in ("BUY", "SELL"):
+
+            print(f"Signal     : {signal}")
 
             print(f"Balance    : {self.executor.get_balance():.2f}")
 
@@ -128,27 +144,41 @@ class LiveRuntime:
 
             return
 
+        print(f"Signal     : {signal}")
+
+        #
+        # -------------------------------------------------
+        # Position Size
+        # -------------------------------------------------
+        #
+
         lot_size = self.risk_manager.calculate_position_size(
 
             balance=self.executor.get_balance(),
 
             risk_percent=config.RISK_PER_TRADE,
 
-            entry_price=latest["Close"],
+            entry_price=float(latest["Close"]),
 
-            stop_loss=latest["StopLoss"],
+            stop_loss=float(latest["StopLoss"]),
 
         )
+
+        #
+        # -------------------------------------------------
+        # Create Paper Trade
+        # -------------------------------------------------
+        #
 
         created = self.executor.execute(
 
             signal=signal,
 
-            price=latest["Close"],
+            price=float(latest["Close"]),
 
-            stop_loss=latest["StopLoss"],
+            stop_loss=float(latest["StopLoss"]),
 
-            take_profit=latest["TakeProfit"],
+            take_profit=float(latest["TakeProfit"]),
 
             lot_size=lot_size,
 
