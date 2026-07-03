@@ -14,6 +14,7 @@ from analytics.equity_curve import EquityCurve
 from analytics.drawdown import Drawdown
 from analytics.streak_analysis import StreakAnalysis
 from analytics.monthly_returns import MonthlyReturns
+from analytics.trade_duration import TradeDuration
 
 
 class AnalyticsEngine:
@@ -39,6 +40,8 @@ class AnalyticsEngine:
         self.streak_analysis = StreakAnalysis()
 
         self.monthly_returns = MonthlyReturns()
+
+        self.trade_duration = TradeDuration()
 
     # -------------------------------------------------
 
@@ -122,6 +125,16 @@ class AnalyticsEngine:
             self.monthly_returns.calculate(
                 trades,
                 starting_balance=starting_balance,
+            )
+        )
+
+        #
+        # Trade Duration
+        #
+
+        analytics["trade_duration"] = (
+            self.trade_duration.calculate(
+                trades,
             )
         )
 
