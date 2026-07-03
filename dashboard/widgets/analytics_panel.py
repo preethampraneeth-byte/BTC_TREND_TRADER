@@ -73,7 +73,7 @@ class AnalyticsPanel:
         )
 
         #
-        # Streaks
+        # Streak Analysis
         #
 
         streak = self.analytics.get(
@@ -136,4 +136,31 @@ class AnalyticsPanel:
         print(
             f"Average Losing Trade    : "
             f"{self.duration_formatter.format(duration.get('average_losing_duration', 0))}"
+        )
+
+        #
+        # Risk Metrics
+        #
+
+        risk = self.analytics.get(
+            "risk_metrics",
+            {},
+        )
+
+        print("\nRISK METRICS")
+        print("-" * 60)
+
+        print(
+            f"Sharpe Ratio            : "
+            f"{risk.get('sharpe_ratio', 0)}"
+        )
+
+        print(
+            f"Sortino Ratio           : "
+            f"{risk.get('sortino_ratio', 0)}"
+        )
+
+        print(
+            f"Calmar Ratio            : "
+            f"{risk.get('calmar_ratio', 0)}"
         )

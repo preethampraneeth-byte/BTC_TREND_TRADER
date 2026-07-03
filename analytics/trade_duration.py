@@ -5,7 +5,6 @@ Trade Duration Analytics
 
 from __future__ import annotations
 
-from datetime import timedelta
 from typing import Any, Dict, List
 
 
@@ -44,23 +43,32 @@ class TradeDuration:
             if entry_time is None or exit_time is None:
                 continue
 
-            duration = exit_time - entry_time
+            try:
 
-            if not isinstance(duration, timedelta):
+                seconds = (
+                    exit_time - entry_time
+                ).total_seconds()
+
+            except Exception:
+
                 continue
-
-            seconds = duration.total_seconds()
 
             durations.append(seconds)
 
             profit = float(
-                getattr(trade, "profit", 0.0)
+                getattr(
+                    trade,
+                    "profit",
+                    0.0,
+                )
             )
 
             if profit > 0:
+
                 winning.append(seconds)
 
             elif profit < 0:
+
                 losing.append(seconds)
 
         if not durations:

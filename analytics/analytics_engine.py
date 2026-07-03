@@ -17,6 +17,7 @@ from analytics.monthly_returns import MonthlyReturns
 from analytics.trade_duration import TradeDuration
 from analytics.time_analysis import TimeAnalysis
 from analytics.weekday_analysis import WeekdayAnalysis
+from analytics.risk_metrics import RiskMetrics
 
 from analytics.analytics_module_registry import (
     AnalyticsModuleRegistry,
@@ -34,10 +35,6 @@ class AnalyticsEngine:
     def __init__(self) -> None:
 
         self.registry = AnalyticsModuleRegistry()
-
-        #
-        # Register analytics modules
-        #
 
         self.registry.register(
             "performance",
@@ -89,6 +86,15 @@ class AnalyticsEngine:
             WeekdayAnalysis(),
         )
 
+        #
+        # NEW
+        #
+
+        self.registry.register(
+            "risk_metrics",
+            RiskMetrics(),
+        )
+
     # -------------------------------------------------
 
     def generate(
@@ -96,40 +102,24 @@ class AnalyticsEngine:
         trades: List[Any],
         starting_balance: float = 0.0,
     ) -> Dict[str, Any]:
-        """
-        Generate complete analytics snapshot.
-        """
 
         analytics: Dict[str, Any] = {}
 
         for name, module in self.registry.modules():
 
-            #
-            # Modules requiring starting balance
-            #
+            if name == "drawdown":
 
-            if name in (
-                "drawdown",
-                "monthly_returns",
-            ):
+                analytics[name] = module.calculate(
+                    trades,
+                    starting_equity=starting_balance,
+                )
 
-                if name == "drawdown":
+            elif name == "monthly_returns":
 
-                    analytics[name] = module.calculate(
-                        trades,
-                        starting_equity=starting_balance,
-                    )
-
-                else:
-
-                    analytics[name] = module.calculate(
-                        trades,
-                        starting_balance=starting_balance,
-                    )
-
-            #
-            # Standard analytics modules
-            #
+                analytics[name] = module.calculate(
+                    trades,
+                    starting_balance=starting_balance,
+                )
 
             else:
 
