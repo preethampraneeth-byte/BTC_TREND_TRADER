@@ -20,8 +20,8 @@ class AnalyticsEngine:
     """
     Central analytics engine.
 
-    Read-only component responsible for aggregating
-    trading analytics from completed trades.
+    Read-only component responsible for orchestrating
+    all analytics modules.
     """
 
     def __init__(self) -> None:
@@ -51,33 +51,78 @@ class AnalyticsEngine:
         Generate complete analytics snapshot.
         """
 
-        return {
+        analytics: Dict[str, Any] = {}
 
-            "performance":
-                self.performance.calculate(trades),
+        #
+        # Performance
+        #
 
-            "trade_statistics":
-                self.trade_statistics.calculate(trades),
+        analytics["performance"] = (
+            self.performance.calculate(
+                trades,
+            )
+        )
 
-            "risk_statistics":
-                self.risk_statistics.calculate(trades),
+        #
+        # Trade Statistics
+        #
 
-            "equity_curve":
-                self.equity_curve.calculate(trades),
+        analytics["trade_statistics"] = (
+            self.trade_statistics.calculate(
+                trades,
+            )
+        )
 
-            "drawdown":
-                self.drawdown.calculate(
-                    trades,
-                    starting_equity=starting_balance,
-                ),
+        #
+        # Risk Statistics
+        #
 
-            "streak_analysis":
-                self.streak_analysis.calculate(trades),
+        analytics["risk_statistics"] = (
+            self.risk_statistics.calculate(
+                trades,
+            )
+        )
 
-            "monthly_returns":
-                self.monthly_returns.calculate(
-                    trades,
-                    starting_balance=starting_balance,
-                ),
+        #
+        # Equity Curve
+        #
 
-        }
+        analytics["equity_curve"] = (
+            self.equity_curve.calculate(
+                trades,
+            )
+        )
+
+        #
+        # Drawdown
+        #
+
+        analytics["drawdown"] = (
+            self.drawdown.calculate(
+                trades,
+                starting_equity=starting_balance,
+            )
+        )
+
+        #
+        # Streak Analysis
+        #
+
+        analytics["streak_analysis"] = (
+            self.streak_analysis.calculate(
+                trades,
+            )
+        )
+
+        #
+        # Monthly Returns
+        #
+
+        analytics["monthly_returns"] = (
+            self.monthly_returns.calculate(
+                trades,
+                starting_balance=starting_balance,
+            )
+        )
+
+        return analytics
