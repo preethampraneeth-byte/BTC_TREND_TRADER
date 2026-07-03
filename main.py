@@ -1,21 +1,28 @@
 """
 BTC Trend Trader Professional v4
-Main Entry Point
+Application Entry Point
 """
 
-from application.application import Application
+from __future__ import annotations
+
+import sys
+
+from runtime.application_runtime import ApplicationRuntime
 
 
 def main() -> None:
-    """
-    Bootstrap the application.
 
-    The complete execution workflow is delegated to the
-    configured runtime via Application.execute().
-    """
+    mode = "backtest"
 
-    Application().execute()
+    if len(sys.argv) > 1:
+
+        mode = sys.argv[1]
+
+    app = ApplicationRuntime()
+
+    app.run(mode)
 
 
 if __name__ == "__main__":
+
     main()
