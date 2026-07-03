@@ -6,6 +6,7 @@ Analytics Service
 from __future__ import annotations
 
 from analytics.analytics_engine import AnalyticsEngine
+from analytics.analytics_report_builder import AnalyticsReportBuilder
 
 
 class AnalyticsService:
@@ -17,6 +18,8 @@ class AnalyticsService:
 
         self.engine = AnalyticsEngine()
 
+        self.report_builder = AnalyticsReportBuilder()
+
     # -------------------------------------------------
 
     def generate(
@@ -25,7 +28,11 @@ class AnalyticsService:
         starting_balance: float = 0.0,
     ):
 
-        return self.engine.generate(
+        analytics = self.engine.generate(
             trades,
             starting_balance,
+        )
+
+        return self.report_builder.build(
+            analytics,
         )
