@@ -78,9 +78,13 @@ class BacktestRuntime:
     def generate_analytics(
         self,
         trades,
+        starting_balance,
     ):
 
-        return self.analytics_service.generate(trades)
+        return self.analytics_service.generate(
+            trades,
+            starting_balance,
+        )
 
     # -------------------------------------------------
 
@@ -126,6 +130,7 @@ class BacktestRuntime:
 
         analytics = self.generate_analytics(
             results["trades"],
+            results["starting_balance"],
         )
 
         self.show_dashboard(

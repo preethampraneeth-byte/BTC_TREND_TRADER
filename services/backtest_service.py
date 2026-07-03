@@ -40,4 +40,5 @@ class BacktestService:
             "summary": summary,
             "statistics": simulation["statistics"],
             "trades": simulation["trades"],
+            "starting_balance": config.INITIAL_BALANCE,
         }

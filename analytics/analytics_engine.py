@@ -42,6 +42,7 @@ class AnalyticsEngine:
     def generate(
         self,
         trades: List[Any],
+        starting_balance: float = 0.0,
     ) -> Dict[str, Any]:
         """
         Generate complete analytics snapshot.
@@ -62,7 +63,10 @@ class AnalyticsEngine:
                 self.equity_curve.calculate(trades),
 
             "drawdown":
-                self.drawdown.calculate(trades),
+                self.drawdown.calculate(
+                    trades,
+                    starting_equity=starting_balance,
+                ),
 
             "streak_analysis":
                 self.streak_analysis.calculate(trades),

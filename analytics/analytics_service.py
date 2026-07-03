@@ -10,11 +10,10 @@ from analytics.analytics_engine import AnalyticsEngine
 
 class AnalyticsService:
     """
-    Service responsible for executing
-    the Analytics Engine.
+    Service wrapper around AnalyticsEngine.
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
 
         self.engine = AnalyticsEngine()
 
@@ -23,6 +22,10 @@ class AnalyticsService:
     def generate(
         self,
         trades,
+        starting_balance: float = 0.0,
     ):
 
-        return self.engine.generate(trades)
+        return self.engine.generate(
+            trades,
+            starting_balance,
+        )
