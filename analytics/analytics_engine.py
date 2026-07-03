@@ -13,6 +13,7 @@ from analytics.risk_statistics import RiskStatistics
 from analytics.equity_curve import EquityCurve
 from analytics.drawdown import Drawdown
 from analytics.streak_analysis import StreakAnalysis
+from analytics.monthly_returns import MonthlyReturns
 
 
 class AnalyticsEngine:
@@ -36,6 +37,8 @@ class AnalyticsEngine:
         self.drawdown = Drawdown()
 
         self.streak_analysis = StreakAnalysis()
+
+        self.monthly_returns = MonthlyReturns()
 
     # -------------------------------------------------
 
@@ -70,5 +73,11 @@ class AnalyticsEngine:
 
             "streak_analysis":
                 self.streak_analysis.calculate(trades),
+
+            "monthly_returns":
+                self.monthly_returns.calculate(
+                    trades,
+                    starting_balance=starting_balance,
+                ),
 
         }
