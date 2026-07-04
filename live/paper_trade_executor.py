@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+import config
+
 
 class PaperTradeExecutor:
     """
@@ -27,7 +29,7 @@ class PaperTradeExecutor:
 
     def __init__(self):
 
-        self.starting_balance = 10000.0
+        self.starting_balance = config.PAPER_STARTING_BALANCE
 
         self.balance = self.starting_balance
 
@@ -200,7 +202,7 @@ class PaperTradeExecutor:
 
         self.equity = self.balance
 
-        self.trade_history.append(trade)
+        self.trade_history.append(trade.copy())
 
         self.open_trade = None
 
@@ -219,13 +221,13 @@ class PaperTradeExecutor:
         if self.open_trade is None:
             return []
 
-        return [self.open_trade]
+        return [self.open_trade.copy()]
 
     # -------------------------------------------------
 
     def get_trade_history(self):
 
-        return self.trade_history
+        return list(self.trade_history)
 
     # -------------------------------------------------
 
@@ -238,6 +240,158 @@ class PaperTradeExecutor:
     def get_equity(self):
 
         return self.equity
+
+
+    # -------------------------------------------------
+
+    def get_statistics(self):
+
+        profits = [
+
+            trade["profit"]
+
+            for trade in self.trade_history
+
+        ]
+
+        wins = [
+
+            p
+
+            for p in profits
+
+            if p > 0
+
+        ]
+
+        losses = [
+
+            p
+
+            for p in profits
+
+            if p < 0
+
+        ]
+
+        gross_profit = sum(wins)
+
+        gross_loss = abs(sum(losses))
+
+        total_trades = len(profits)
+
+        net_profit = self.balance - self.starting_balance
+
+        return {
+
+            "starting_balance": self.starting_balance,
+
+            "ending_balance": self.balance,
+
+            "equity": self.equity,
+
+            "net_profit": net_profit,
+
+            "total_trades": total_trades,
+
+            "wins": len(wins),
+
+            "losses": len(losses),
+
+            "win_rate": (
+
+                round((len(wins) / total_trades) * 100, 2)
+
+                if total_trades
+
+                else 0.0
+
+            ),
+
+            "gross_profit": gross_profit,
+
+            "gross_loss": gross_loss,
+
+            "profit_factor": (
+
+                round(gross_profit / gross_loss, 2)
+
+                if gross_loss > 0
+
+                else 0.0
+
+            ),
+
+            "average_win": (
+
+                round(gross_profit / len(wins), 2)
+
+                if wins
+
+                else 0.0
+
+            ),
+
+            "average_loss": (
+
+                round(gross_loss / len(losses), 2)
+
+                if losses
+
+                else 0.0
+
+            ),
+
+            "largest_win": max(wins) if wins else 0.0,
+
+            "largest_loss": min(losses) if losses else 0.0,
+
+        }
+
+    # -------------------------------------------------
+
+    def print_summary(self):
+
+        stats = self.get_statistics()
+
+        print()
+
+        print("=" * 60)
+
+        print("PAPER TRADING SESSION SUMMARY")
+
+        print("=" * 60)
+
+        print(f"Starting Balance : {stats['starting_balance']:.2f}")
+
+        print(f"Ending Balance   : {stats['ending_balance']:.2f}")
+
+        print(f"Net Profit       : {stats['net_profit']:.2f}")
+
+        print(f"Total Trades     : {stats['total_trades']}")
+
+        print(f"Wins             : {stats['wins']}")
+
+        print(f"Losses           : {stats['losses']}")
+
+        print(f"Win Rate         : {stats['win_rate']:.2f}%")
+
+        print(f"Gross Profit     : {stats['gross_profit']:.2f}")
+
+        print(f"Gross Loss       : {stats['gross_loss']:.2f}")
+
+        print(f"Profit Factor    : {stats['profit_factor']}")
+
+        print(f"Average Win      : {stats['average_win']:.2f}")
+
+        print(f"Average Loss     : {stats['average_loss']:.2f}")
+
+        print(f"Largest Win      : {stats['largest_win']:.2f}")
+
+        print(f"Largest Loss     : {stats['largest_loss']:.2f}")
+
+        print("=" * 60)
+
 
     # -------------------------------------------------
 

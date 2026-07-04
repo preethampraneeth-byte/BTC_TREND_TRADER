@@ -2,7 +2,7 @@
 BTC Trend Trader Professional v4
 Live Trading Runtime
 
-Sprint 9.1
+Sprint 9.2
 """
 
 from __future__ import annotations
@@ -99,6 +99,8 @@ class LiveRuntime:
         )
 
         if closed_trade is not None:
+
+            print()
 
             print("✓ Paper trade closed.")
 
@@ -212,11 +214,23 @@ class LiveRuntime:
 
         self.running = True
 
-        while self.running:
+        try:
 
-            self.process_market()
+            while self.running:
 
-            time.sleep(5)
+                self.process_market()
+
+                time.sleep(5)
+
+        except KeyboardInterrupt:
+
+            print()
+
+            print("Stopping paper trading...")
+
+        finally:
+
+            self.shutdown()
 
     # -------------------------------------------------
 
@@ -227,6 +241,10 @@ class LiveRuntime:
     # -------------------------------------------------
 
     def shutdown(self):
+
+        print()
+
+        self.executor.print_summary()
 
         self.market_feed.shutdown()
 
