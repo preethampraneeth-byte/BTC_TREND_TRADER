@@ -120,11 +120,17 @@ class LiveRuntime:
 
         if self.executor.has_open_trade():
 
+            trade = self.executor.get_open_trades()[0]
+
             print("Position   : OPEN")
-
             print(f"Balance    : {self.executor.get_balance():.2f}")
-
             print(f"Equity     : {self.executor.get_equity():.2f}")
+            print(f"Stop Loss  : {trade['stop_loss']:.2f}")
+            print(f"Take Profit: {trade['take_profit']:.2f}")
+            print(
+                f"Break-even : "
+                f"{'YES' if trade['break_even_activated'] else 'NO'}"
+            )
 
             return
 

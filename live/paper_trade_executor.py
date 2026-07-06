@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 import config
+from core.risk_manager import RiskManager
 
 
 class PaperTradeExecutor:
@@ -41,6 +42,8 @@ class PaperTradeExecutor:
 
         self.last_trade_time = None
 
+        self.risk_manager = RiskManager()
+
     # -------------------------------------------------
 
     def execute(
@@ -67,6 +70,8 @@ class PaperTradeExecutor:
 
             "stop_loss": float(stop_loss),
 
+            "initial_stop_loss": float(stop_loss),
+
             "take_profit": float(take_profit),
 
             "lot_size": float(lot_size),
@@ -82,6 +87,8 @@ class PaperTradeExecutor:
             "status": "OPEN",
 
             "result": None,
+
+            "break_even_activated": False,
 
         }
 
@@ -109,7 +116,84 @@ class PaperTradeExecutor:
 
         exit_price = None
 
-        result = None
+        #
+        # Break-even Management
+        #
+
+        if (
+            config.ENABLE_BREAK_EVEN
+            and not trade["break_even_activated"]
+        ):
+
+            initial_risk = abs(
+                trade["entry_price"]
+                - trade["initial_stop_loss"]
+            )
+
+            if signal == "BUY":
+
+                trigger_price = (
+                    trade["entry_price"]
+                    + (
+                        initial_risk
+                        * config.BREAK_EVEN_R
+                    )
+                )
+
+                current_price = high
+
+            else:
+
+                trigger_price = (
+                    trade["entry_price"]
+                    - (
+                        initial_risk
+                        * config.BREAK_EVEN_R
+                    )
+                )
+
+                current_price = low
+
+            new_stop = self.risk_manager.calculate_break_even_stop(
+
+                entry_price=trade["entry_price"],
+
+                current_stop=trade["stop_loss"],
+
+                current_price=current_price,
+
+                side=signal,
+
+                trigger_price=trigger_price,
+
+                lock_in=config.BREAK_EVEN_OFFSET,
+
+            )
+
+            if new_stop != trade["stop_loss"]:
+
+                trade["stop_loss"] = new_stop
+
+                trade["break_even_activated"] = True
+
+                print()
+
+                print("✓ Break-even activated")
+
+                print(
+                    f"Trigger Price : "
+                    f"{trigger_price:.2f}"
+                )
+
+                print(
+                    f"Entry Price   : "
+                    f"{trade['entry_price']:.2f}"
+                )
+
+                print(
+                    f"New Stop Loss : "
+                    f"{new_stop:.2f}"
+                )
 
         #
         # BUY
@@ -121,13 +205,9 @@ class PaperTradeExecutor:
 
                 exit_price = trade["stop_loss"]
 
-                result = "LOSS"
-
             elif high >= trade["take_profit"]:
 
                 exit_price = trade["take_profit"]
-
-                result = "WIN"
 
         #
         # SELL
@@ -139,18 +219,13 @@ class PaperTradeExecutor:
 
                 exit_price = trade["stop_loss"]
 
-                result = "LOSS"
-
             elif low <= trade["take_profit"]:
 
                 exit_price = trade["take_profit"]
-
-                result = "WIN"
-
+        
         #
         # Floating Equity
         #
-
         if signal == "BUY":
 
             floating = (
@@ -196,7 +271,17 @@ class PaperTradeExecutor:
 
         trade["status"] = "CLOSED"
 
-        trade["result"] = result
+        if profit > 0:
+
+            trade["result"] = "WIN"
+
+        elif profit < 0:
+
+            trade["result"] = "LOSS"
+
+        else:
+
+            trade["result"] = "BREAKEVEN"
 
         self.balance += profit
 

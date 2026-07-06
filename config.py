@@ -51,7 +51,7 @@ TIMEFRAME = "M1"
 # LIVE      -> Real MT5 execution
 #
 
-EXECUTION_MODE = "BACKTEST"
+EXECUTION_MODE = "PAPER"
 
 # ======================================================
 # Data Source
