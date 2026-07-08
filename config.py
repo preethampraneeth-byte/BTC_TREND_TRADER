@@ -174,11 +174,11 @@ BREAK_EVEN_OFFSET = 0.0
 # ATR Trailing Stop
 # ------------------------------------------------------
 
-ENABLE_TRAILING_STOP = False
+ENABLE_TRAILING_STOP = True
 
 TRAILING_STOP_ATR = 1.5
 
-TRAILING_START_R = 1.5
+TRAILING_START_R = 1.0
 
 # ------------------------------------------------------
 # Partial Profit Taking

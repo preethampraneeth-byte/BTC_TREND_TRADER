@@ -94,6 +94,8 @@ class LiveRuntime:
 
             close=float(latest["Close"]),
 
+            atr=float(latest["ATR"]),
+
             timestamp=candle_time,
 
         )
@@ -130,6 +132,11 @@ class LiveRuntime:
             print(
                 f"Break-even : "
                 f"{'YES' if trade['break_even_activated'] else 'NO'}"
+            )
+
+            print(
+                f"Trailing   : "
+                f"{'YES' if trade['trailing_stop_activated'] else 'NO'}"
             )
 
             return
