@@ -184,12 +184,12 @@ TRAILING_START_R = 1.0
 # Partial Profit Taking
 # ------------------------------------------------------
 
-ENABLE_PARTIAL_TP = False
+ENABLE_PARTIAL_TP = True
 
 PARTIAL_TP_LEVELS = [
+    0.5,
     1.0,
     2.0,
-    3.0,
 ]
 
 PARTIAL_TP_PERCENTAGES = [

@@ -129,6 +129,12 @@ class LiveRuntime:
             print(f"Equity     : {self.executor.get_equity():.2f}")
             print(f"Stop Loss  : {trade['stop_loss']:.2f}")
             print(f"Take Profit: {trade['take_profit']:.2f}")
+            print(f"Lot Size   : {trade['lot_size']:.2f}")
+            print(
+                f"Partials   : "
+                f"{len(trade['partial_exits'])}/"
+                f"{len(trade['partial_tp_hits'])}"
+            )
             print(
                 f"Break-even : "
                 f"{'YES' if trade['break_even_activated'] else 'NO'}"

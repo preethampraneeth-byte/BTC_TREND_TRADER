@@ -9,6 +9,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+import csv
+import os
+
 import config
 from core.risk_manager import RiskManager
 
@@ -44,6 +47,8 @@ class PaperTradeExecutor:
 
         self.risk_manager = RiskManager()
 
+        os.makedirs(config.LOG_FOLDER, exist_ok=True)
+
     # -------------------------------------------------
 
     def execute(
@@ -76,6 +81,10 @@ class PaperTradeExecutor:
 
             "lot_size": float(lot_size),
 
+            "initial_lot_size": float(lot_size),
+
+            "remaining_lot_size": float(lot_size),
+
             "entry_time": timestamp,
 
             "exit_price": None,
@@ -95,6 +104,15 @@ class PaperTradeExecutor:
             "highest_price": float(price),
 
             "lowest_price": float(price),
+
+            "partial_tp_hits": [
+                False
+                for _ in config.PARTIAL_TP_LEVELS
+            ],
+
+            "partial_exits": [],
+
+            "partial_profit": 0.0,
 
         }
 
@@ -313,10 +331,156 @@ class PaperTradeExecutor:
                         )
 
         #
+        # Partial Profit Taking
+        #
+
+        if config.ENABLE_PARTIAL_TP:
+
+            initial_risk = abs(
+                trade["entry_price"]
+                - trade["initial_stop_loss"]
+            )
+
+            for index, level in enumerate(config.PARTIAL_TP_LEVELS):
+
+                if index >= len(config.PARTIAL_TP_PERCENTAGES):
+                    continue
+
+                if index >= len(trade["partial_tp_hits"]):
+                    continue
+
+                if trade["partial_tp_hits"][index]:
+                    continue
+
+                if trade["lot_size"] <= 0:
+                    continue
+
+                if initial_risk <= 0:
+                    continue
+
+                if signal == "BUY":
+
+                    partial_price = (
+                        trade["entry_price"]
+                        + (
+                            initial_risk
+                            * level
+                        )
+                    )
+
+                    partial_hit = high >= partial_price
+
+                else:
+
+                    partial_price = (
+                        trade["entry_price"]
+                        - (
+                            initial_risk
+                            * level
+                        )
+                    )
+
+                    partial_hit = low <= partial_price
+
+                if not partial_hit:
+                    continue
+
+                close_lot = (
+                    trade["initial_lot_size"]
+                    * (
+                        config.PARTIAL_TP_PERCENTAGES[index]
+                        / 100
+                    )
+                )
+
+                close_lot = min(
+                    close_lot,
+                    trade["lot_size"],
+                )
+
+                if close_lot <= 0:
+                    continue
+
+                if signal == "BUY":
+
+                    partial_profit = (
+                        partial_price
+                        - trade["entry_price"]
+                    ) * close_lot
+
+                else:
+
+                    partial_profit = (
+                        trade["entry_price"]
+                        - partial_price
+                    ) * close_lot
+
+                trade["lot_size"] -= close_lot
+
+                if trade["lot_size"] < 0:
+                    trade["lot_size"] = 0.0
+
+                trade["remaining_lot_size"] = trade["lot_size"]
+
+                trade["partial_tp_hits"][index] = True
+
+                trade["partial_profit"] += partial_profit
+
+                trade["profit"] += partial_profit
+
+                self.balance += partial_profit
+
+                trade["partial_exits"].append(
+                    {
+                        "level": float(level),
+                        "percentage": float(
+                            config.PARTIAL_TP_PERCENTAGES[index]
+                        ),
+                        "exit_price": partial_price,
+                        "lot_size": close_lot,
+                        "profit": partial_profit,
+                        "exit_time": timestamp,
+                    }
+                )
+
+                print()
+
+                print("Partial profit taken")
+
+                print(
+                    f"Level       : "
+                    f"{level:.2f}R"
+                )
+
+                print(
+                    f"Exit Price  : "
+                    f"{partial_price:.2f}"
+                )
+
+                print(
+                    f"Closed Lot  : "
+                    f"{close_lot:.2f}"
+                )
+
+                print(
+                    f"Remaining   : "
+                    f"{trade['lot_size']:.2f}"
+                )
+
+                print(
+                    f"Profit      : "
+                    f"{partial_profit:.2f}"
+                )
+
+        #
         # BUY
         #
 
-        if signal == "BUY":
+        if trade["lot_size"] <= 0:
+
+            exit_price = trade["partial_exits"][-1]["exit_price"]
+
+        elif signal == "BUY":
 
             if low <= trade["stop_loss"]:
 
@@ -370,21 +534,27 @@ class PaperTradeExecutor:
 
         if signal == "BUY":
 
-            profit = (
+            closing_profit = (
                 exit_price - trade["entry_price"]
             ) * trade["lot_size"]
 
         else:
 
-            profit = (
+            closing_profit = (
                 trade["entry_price"] - exit_price
             ) * trade["lot_size"]
+
+        profit = trade["profit"] + closing_profit
 
         trade["exit_price"] = exit_price
 
         trade["exit_time"] = timestamp
 
         trade["profit"] = profit
+
+        trade["remaining_lot_size"] = 0.0
+
+        trade["lot_size"] = 0.0
 
         trade["status"] = "CLOSED"
 
@@ -400,11 +570,13 @@ class PaperTradeExecutor:
 
             trade["result"] = "BREAKEVEN"
 
-        self.balance += profit
+        self.balance += closing_profit
 
         self.equity = self.balance
 
         self.trade_history.append(trade.copy())
+
+        self.log_trade_to_csv(trade)
 
         self.open_trade = None
 
@@ -594,6 +766,63 @@ class PaperTradeExecutor:
 
         print("=" * 60)
 
+        # -------------------------------------------------
+
+    def log_trade_to_csv(self, trade):
+
+        if not config.LOG_TO_CSV:
+            return
+
+        file_exists = os.path.exists(config.TRADE_LOG)
+
+        with open(
+            config.TRADE_LOG,
+            "a",
+            newline="",
+            encoding="utf-8",
+        ) as csvfile:
+
+            writer = csv.writer(csvfile)
+
+            if not file_exists:
+
+                writer.writerow([
+                    "Entry Time",
+                    "Exit Time",
+                    "Signal",
+                    "Entry Price",
+                    "Exit Price",
+                    "Initial Lot",
+                    "Remaining Lot",
+                    "Stop Loss",
+                    "Take Profit",
+                    "Break-even",
+                    "Trailing",
+                    "Partial Count",
+                    "Partial Profit",
+                    "Total Profit",
+                    "Result",
+                    "Balance",
+                ])
+
+            writer.writerow([
+                trade["entry_time"],
+                trade["exit_time"],
+                trade["signal"],
+                round(trade["entry_price"], 2),
+                round(trade["exit_price"], 2),
+                round(trade["initial_lot_size"], 4),
+                round(trade["remaining_lot_size"], 4),
+                round(trade["stop_loss"], 2),
+                round(trade["take_profit"], 2),
+                trade["break_even_activated"],
+                trade["trailing_stop_activated"],
+                len(trade["partial_exits"]),
+                round(trade["partial_profit"], 2),
+                round(trade["profit"], 2),
+                trade["result"],
+                round(self.balance, 2),
+            ])
 
     # -------------------------------------------------
 
