@@ -130,6 +130,7 @@ class LiveRuntime:
             print(f"Stop Loss  : {trade['stop_loss']:.2f}")
             print(f"Take Profit: {trade['take_profit']:.2f}")
             print(f"Lot Size   : {trade['lot_size']:.2f}")
+            print(f"Bars Held  : {trade['bars_in_trade']} / {config.MAX_BARS_IN_TRADE}")
             print(
                 f"Partials   : "
                 f"{len(trade['partial_exits'])}/"
