@@ -2,7 +2,8 @@
 BTC Trend Trader Professional v4
 Paper Trade Executor
 
-Sprint 9.1
+Sprint 10.4 Stable
+Architecture Refactor Base
 """
 
 from __future__ import annotations
@@ -139,7 +140,31 @@ class PaperTradeExecutor:
 
         signal = trade["signal"]
 
-        exit_price = None
+        # 1. Break-even
+        self._update_break_even(trade, high, low, signal)
+
+        # 2. ATR Trailing
+        self._update_trailing_stop(trade, high, low, atr, signal)
+
+        # 3. Partial Profit
+        self._update_partial_profit(trade, high, low, timestamp, signal)
+
+        # 4. Exit Conditions
+        exit_price = self._check_exit_conditions(trade, high, low, signal)
+
+        # 5. Floating Equity
+        self._update_equity(trade, close, signal)
+
+        # Still Open
+        if exit_price is None:
+            return None
+
+        # 6. Close Trade
+        return self._close_trade(trade, exit_price, timestamp, signal)
+
+    # -------------------------------------------------
+
+    def _update_break_even(self, trade, high, low, signal):
 
         #
         # Break-even Management
@@ -219,6 +244,10 @@ class PaperTradeExecutor:
                     f"New Stop Loss : "
                     f"{new_stop:.2f}"
                 )
+
+    # -------------------------------------------------
+
+    def _update_trailing_stop(self, trade, high, low, atr, signal):
 
         #
         # ATR Trailing Stop Management
@@ -329,6 +358,10 @@ class PaperTradeExecutor:
                             f"New Stop Loss : "
                             f"{new_stop:.2f}"
                         )
+
+    # -------------------------------------------------
+
+    def _update_partial_profit(self, trade, high, low, timestamp, signal):
 
         #
         # Partial Profit Taking
@@ -472,6 +505,12 @@ class PaperTradeExecutor:
                     f"{partial_profit:.2f}"
                 )
 
+    # -------------------------------------------------
+
+    def _check_exit_conditions(self, trade, high, low, signal):
+
+        exit_price = None
+
         #
         # BUY
         #
@@ -503,7 +542,13 @@ class PaperTradeExecutor:
             elif low <= trade["take_profit"]:
 
                 exit_price = trade["take_profit"]
-        
+
+        return exit_price
+
+    # -------------------------------------------------
+
+    def _update_equity(self, trade, close, signal):
+
         #
         # Floating Equity
         #
@@ -521,12 +566,9 @@ class PaperTradeExecutor:
 
         self.equity = self.balance + floating
 
-        #
-        # Still Open
-        #
+    # -------------------------------------------------
 
-        if exit_price is None:
-            return None
+    def _close_trade(self, trade, exit_price, timestamp, signal):
 
         #
         # Close Trade
