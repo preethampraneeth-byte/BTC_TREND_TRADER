@@ -934,6 +934,7 @@ class PaperTradeExecutor:
                     "Partial Profit",
                     "Total Profit",
                     "Result",
+                    "Exit Reason",
                     "Balance",
                 ])
 
@@ -953,6 +954,7 @@ class PaperTradeExecutor:
                 round(trade["partial_profit"], 2),
                 round(trade["profit"], 2),
                 trade["result"],
+                trade["exit_reason"],
                 round(self.balance, 2),
             ])
 
