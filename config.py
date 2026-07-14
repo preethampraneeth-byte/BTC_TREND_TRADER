@@ -204,7 +204,7 @@ PARTIAL_TP_PERCENTAGES = [
 
 ENABLE_TIME_EXIT = True
 
-MAX_BARS_IN_TRADE = 3
+MAX_BARS_IN_TRADE = 20
 
 # ======================================================
 # Optimization Settings

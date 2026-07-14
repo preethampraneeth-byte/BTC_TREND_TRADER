@@ -144,9 +144,9 @@ class PaperTradeExecutor:
 
         trade = self.open_trade
 
-        trade["bars_in_trade"] += 1
-
         signal = trade["signal"]
+
+        trade["bars_in_trade"] += 1
 
         # 1. Break-even
         self._update_break_even(trade, high, low, signal)
@@ -157,17 +157,32 @@ class PaperTradeExecutor:
         # 3. Partial Profit
         self._update_partial_profit(trade, high, low, timestamp, signal)
 
-        # 4. Exit Conditions
-        exit_price = self._check_exit_conditions(trade, high, low, signal)
+        # 4. Normal Exit
 
-        # 5. Floating Equity
+        exit_price = self._check_exit_conditions(
+            trade,
+            high,
+            low,
+            signal,
+        )
+
+        # 5. Time Exit
+
+        if exit_price is None:
+
+            exit_price = self._check_time_exit(
+                trade,
+                close,
+            )
+
+        # 6. Floating Equity
         self._update_equity(trade, close, signal)
 
         # Still Open
         if exit_price is None:
             return None
 
-        # 6. Close Trade
+        # 7. Close Trade
         return self._close_trade(trade, exit_price, timestamp, signal)
 
     # -------------------------------------------------
@@ -512,6 +527,41 @@ class PaperTradeExecutor:
                     f"Profit      : "
                     f"{partial_profit:.2f}"
                 )
+
+    # -------------------------------------------------
+
+    def _check_time_exit(self, trade, close):
+
+        if not config.ENABLE_TIME_EXIT:
+            return None
+
+        if not trade["time_exit_enabled"]:
+            return None
+
+        if trade["break_even_activated"]:
+            return None
+
+        if trade["trailing_stop_activated"]:
+            return None
+
+        if trade["bars_in_trade"] < config.MAX_BARS_IN_TRADE:
+            return None
+
+        print()
+
+        print("Time Exit triggered")
+
+        print(
+            f"Bars Held  : "
+            f"{trade['bars_in_trade']}"
+        )
+
+        print(
+            f"Exit Price : "
+            f"{close:.2f}"
+        )
+
+        return float(close)
 
     # -------------------------------------------------
 
