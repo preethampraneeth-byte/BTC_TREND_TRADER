@@ -812,6 +812,38 @@ class PaperTradeExecutor:
             if trade["exit_reason"] == "TIME_EXIT"
         )
 
+        bars = [
+            trade.get("bars_held", 0)
+            for trade in self.trade_history
+        ]
+
+        win_bars = [
+            trade.get("bars_held", 0)
+            for trade in self.trade_history
+            if trade["result"] == "WIN"
+        ]
+
+        loss_bars = [
+            trade.get("bars_held", 0)
+            for trade in self.trade_history
+            if trade["result"] == "LOSS"
+        ]
+
+        average_bars = (
+            sum(bars) / len(bars)
+            if bars else 0
+        )
+
+        average_win_bars = (
+            sum(win_bars) / len(win_bars)
+            if win_bars else 0
+        )
+
+        average_loss_bars = (
+            sum(loss_bars) / len(loss_bars)
+            if loss_bars else 0
+        )
+
         gross_profit = sum(wins)
 
         gross_loss = abs(sum(losses))
@@ -845,6 +877,12 @@ class PaperTradeExecutor:
             "trailing_stops": trailing_stops,
 
             "time_exits": time_exits,
+
+            "average_bars": average_bars,
+
+            "average_win_bars": average_win_bars,
+
+            "average_loss_bars": average_loss_bars,
 
             "win_rate": (
 
@@ -932,6 +970,12 @@ class PaperTradeExecutor:
 
         print(f"Time Exits       : {stats['time_exits']}")
 
+        print(f"Average Bars     : {stats['average_bars']:.2f}")
+
+        print(f"Winning Avg Bars : {stats['average_win_bars']:.2f}")
+
+        print(f"Losing Avg Bars  : {stats['average_loss_bars']:.2f}")
+
         print(f"Win Rate         : {stats['win_rate']:.2f}%")
 
         print(f"Gross Profit     : {stats['gross_profit']:.2f}")
@@ -959,6 +1003,40 @@ class PaperTradeExecutor:
 
         file_exists = os.path.exists(config.TRADE_LOG)
 
+        expected_header = [
+            "Entry Time",
+            "Exit Time",
+            "Bars Held",
+            "Signal",
+            "Entry Price",
+            "Exit Price",
+            "Initial Lot",
+            "Remaining Lot",
+            "Stop Loss",
+            "Take Profit",
+            "Break-even",
+            "Trailing",
+            "Partial Count",
+            "Partial Profit",
+            "Total Profit",
+            "Result",
+            "Exit Reason",
+            "Balance",
+        ]
+
+        if file_exists:
+
+            with open(config.TRADE_LOG, "r", newline="") as f:
+                reader = csv.reader(f)
+                header = next(reader, [])
+
+            if header != expected_header:
+
+                print()
+                print("⚠ CSV schema mismatch detected.")
+                print("Create a new CSV before continuing.")
+                return
+
         with open(
             config.TRADE_LOG,
             "a",
@@ -970,26 +1048,7 @@ class PaperTradeExecutor:
 
             if not file_exists:
 
-                writer.writerow([
-                    "Entry Time",
-                    "Exit Time",
-                    "Bars Held",
-                    "Signal",
-                    "Entry Price",
-                    "Exit Price",
-                    "Initial Lot",
-                    "Remaining Lot",
-                    "Stop Loss",
-                    "Take Profit",
-                    "Break-even",
-                    "Trailing",
-                    "Partial Count",
-                    "Partial Profit",
-                    "Total Profit",
-                    "Result",
-                    "Exit Reason",
-                    "Balance",
-                ])
+                writer.writerow(expected_header)
 
             writer.writerow([
                 trade["entry_time"],
