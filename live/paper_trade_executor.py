@@ -563,6 +563,8 @@ class PaperTradeExecutor:
             f"{close:.2f}"
         )
 
+        trade["exit_reason"] = "TIME_EXIT"
+
         return float(close)
 
     # -------------------------------------------------
@@ -583,9 +585,23 @@ class PaperTradeExecutor:
 
             if low <= trade["stop_loss"]:
 
+                if trade["trailing_stop_activated"]:
+
+                    trade["exit_reason"] = "TRAILING_STOP"
+
+                elif trade["break_even_activated"]:
+
+                    trade["exit_reason"] = "BREAK_EVEN_STOP"
+
+                else:
+
+                    trade["exit_reason"] = "STOP_LOSS"
+
                 exit_price = trade["stop_loss"]
 
             elif high >= trade["take_profit"]:
+
+                trade["exit_reason"] = "TAKE_PROFIT"
 
                 exit_price = trade["take_profit"]
 
@@ -597,9 +613,23 @@ class PaperTradeExecutor:
 
             if high >= trade["stop_loss"]:
 
+                if trade["trailing_stop_activated"]:
+
+                    trade["exit_reason"] = "TRAILING_STOP"
+
+                elif trade["break_even_activated"]:
+
+                    trade["exit_reason"] = "BREAK_EVEN_STOP"
+
+                else:
+
+                    trade["exit_reason"] = "STOP_LOSS"
+
                 exit_price = trade["stop_loss"]
 
             elif low <= trade["take_profit"]:
+
+                trade["exit_reason"] = "TAKE_PROFIT"
 
                 exit_price = trade["take_profit"]
 
