@@ -144,6 +144,8 @@ class PaperTradeExecutor:
 
         trade = self.open_trade
 
+        trade["bars_in_trade"] += 1
+
         signal = trade["signal"]
 
         # 1. Break-even
