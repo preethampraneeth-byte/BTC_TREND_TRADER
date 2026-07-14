@@ -682,6 +682,8 @@ class PaperTradeExecutor:
 
         trade["exit_time"] = timestamp
 
+        trade["bars_held"] = trade["bars_in_trade"]
+
         trade["profit"] = profit
 
         trade["remaining_lot_size"] = 0.0
