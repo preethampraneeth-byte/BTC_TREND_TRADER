@@ -780,6 +780,36 @@ class PaperTradeExecutor:
 
         ]
 
+        stop_losses = sum(
+            1
+            for trade in self.trade_history
+            if trade["exit_reason"] == "STOP_LOSS"
+        )
+
+        take_profits = sum(
+            1
+            for trade in self.trade_history
+            if trade["exit_reason"] == "TAKE_PROFIT"
+        )
+
+        break_even_stops = sum(
+            1
+            for trade in self.trade_history
+            if trade["exit_reason"] == "BREAK_EVEN_STOP"
+        )
+
+        trailing_stops = sum(
+            1
+            for trade in self.trade_history
+            if trade["exit_reason"] == "TRAILING_STOP"
+        )
+
+        time_exits = sum(
+            1
+            for trade in self.trade_history
+            if trade["exit_reason"] == "TIME_EXIT"
+        )
+
         gross_profit = sum(wins)
 
         gross_loss = abs(sum(losses))
@@ -803,6 +833,16 @@ class PaperTradeExecutor:
             "wins": len(wins),
 
             "losses": len(losses),
+
+            "stop_losses": stop_losses,
+
+            "take_profits": take_profits,
+
+            "break_even_stops": break_even_stops,
+
+            "trailing_stops": trailing_stops,
+
+            "time_exits": time_exits,
 
             "win_rate": (
 
@@ -879,6 +919,16 @@ class PaperTradeExecutor:
         print(f"Wins             : {stats['wins']}")
 
         print(f"Losses           : {stats['losses']}")
+
+        print(f"Stop Losses      : {stats['stop_losses']}")
+
+        print(f"Take Profits     : {stats['take_profits']}")
+
+        print(f"Break-even Stops : {stats['break_even_stops']}")
+
+        print(f"Trailing Stops   : {stats['trailing_stops']}")
+
+        print(f"Time Exits       : {stats['time_exits']}")
 
         print(f"Win Rate         : {stats['win_rate']:.2f}%")
 
