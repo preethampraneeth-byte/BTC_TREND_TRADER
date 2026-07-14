@@ -115,6 +115,12 @@ class PaperTradeExecutor:
 
             "partial_profit": 0.0,
 
+            "bars_in_trade": 0,
+
+            "entry_bar": 0,
+
+            "time_exit_enabled": config.ENABLE_TIME_EXIT,
+
         }
 
         self.last_trade_time = timestamp
