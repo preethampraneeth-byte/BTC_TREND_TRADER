@@ -973,6 +973,7 @@ class PaperTradeExecutor:
                 writer.writerow([
                     "Entry Time",
                     "Exit Time",
+                    "Bars Held",
                     "Signal",
                     "Entry Price",
                     "Exit Price",
@@ -993,6 +994,7 @@ class PaperTradeExecutor:
             writer.writerow([
                 trade["entry_time"],
                 trade["exit_time"],
+                trade["bars_held"],
                 trade["signal"],
                 round(trade["entry_price"], 2),
                 round(trade["exit_price"], 2),
