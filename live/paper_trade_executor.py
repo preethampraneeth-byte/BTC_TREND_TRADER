@@ -121,6 +121,8 @@ class PaperTradeExecutor:
 
             "time_exit_enabled": config.ENABLE_TIME_EXIT,
 
+            "exit_reason": None,
+
         }
 
         self.last_trade_time = timestamp
