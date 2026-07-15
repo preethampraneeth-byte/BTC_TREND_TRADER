@@ -31,21 +31,33 @@ class ApplicationRuntime:
         self,
         mode: str = "backtest",
     ) -> None:
+        """
+        Run the requested application mode.
+
+        This method dispatches execution to the appropriate runtime.
+        Trading logic is intentionally delegated to the runtime classes.
+        """
 
         mode = mode.lower()
 
-        if mode == "backtest":
+        print(f"ApplicationRuntime: starting '{mode}' mode.")
 
-            self.backtest.run()
+        try:
 
-            return
+            if mode == "backtest":
 
-        if mode == "paper":
+                self.backtest.run()
+                return
 
-            self.live.start()
+            if mode == "paper":
 
-            return
+                self.live.start()
+                return
 
-        raise ValueError(
-            f"Unknown application mode: {mode}"
-        )
+            raise ValueError(
+                f"Unknown application mode: {mode}"
+            )
+
+        finally:
+
+            print(f"ApplicationRuntime: '{mode}' mode finished.")
