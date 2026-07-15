@@ -40,6 +40,10 @@ class LiveRuntime:
 
         self.shutdown_complete = False
 
+        self.start_time = time.time()
+
+        self.last_heartbeat = time.time()
+
     # -------------------------------------------------
 
     def initialize(self):
@@ -71,6 +75,71 @@ class LiveRuntime:
         )
 
         print("=" * 60)
+
+    # -------------------------------------------------
+
+    def print_heartbeat(self):
+
+        now = time.time()
+
+        if now - self.last_heartbeat < 60:
+
+            return
+
+        self.last_heartbeat = now
+
+        uptime = int(now - self.start_time)
+
+        hours = uptime // 3600
+
+        minutes = (uptime % 3600) // 60
+
+        seconds = uptime % 60
+
+        print()
+
+        print("-" * 60)
+
+        print("HEARTBEAT")
+
+        print("-" * 60)
+
+        print("Status        : RUNNING")
+
+        print("Mode          : PAPER")
+
+        print(
+            f"Balance       : "
+            f"{self.executor.get_balance():.2f}"
+        )
+
+        print(
+            f"Equity        : "
+            f"{self.executor.get_equity():.2f}"
+        )
+
+        print(
+            f"Open Trades   : "
+            f"{len(self.executor.get_open_trades())}"
+        )
+
+        if self.last_processed_candle is None:
+
+            print("Last Candle   : None")
+
+        else:
+
+            print(
+                f"Last Candle   : "
+                f"{self.last_processed_candle}"
+            )
+
+        print(
+            f"Uptime        : "
+            f"{hours:02}:{minutes:02}:{seconds:02}"
+        )
+
+        print("-" * 60)
 
     # -------------------------------------------------
 
@@ -262,6 +331,8 @@ class LiveRuntime:
             while self.running:
 
                 self.process_market()
+
+                self.print_heartbeat()
 
                 time.sleep(5)
 
