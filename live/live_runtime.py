@@ -2,7 +2,7 @@
 BTC Trend Trader Professional v4
 Live Trading Runtime
 
-Sprint 9.2
+Sprint 11.1.3
 """
 
 from __future__ import annotations
@@ -38,6 +38,8 @@ class LiveRuntime:
 
         self.last_processed_candle = None
 
+        self.shutdown_complete = False
+
     # -------------------------------------------------
 
     def initialize(self):
@@ -66,10 +68,6 @@ class LiveRuntime:
 
         candle_time = latest["Time"]
 
-        #
-        # Skip already processed candle
-        #
-
         if candle_time == self.last_processed_candle:
 
             return
@@ -79,12 +77,6 @@ class LiveRuntime:
         print()
 
         print(f"New Candle : {candle_time}")
-
-        #
-        # -------------------------------------------------
-        # Update Existing Position
-        # -------------------------------------------------
-        #
 
         closed_trade = self.executor.update(
 
@@ -114,12 +106,6 @@ class LiveRuntime:
 
             print(f"Equity     : {self.executor.get_equity():.2f}")
 
-        #
-        # -------------------------------------------------
-        # Existing Position
-        # -------------------------------------------------
-        #
-
         if self.executor.has_open_trade():
 
             trade = self.executor.get_open_trades()[0]
@@ -139,7 +125,6 @@ class LiveRuntime:
                 f"Break-even : "
                 f"{'YES' if trade['break_even_activated'] else 'NO'}"
             )
-
             print(
                 f"Trailing   : "
                 f"{'YES' if trade['trailing_stop_activated'] else 'NO'}"
@@ -147,31 +132,17 @@ class LiveRuntime:
 
             return
 
-        #
-        # -------------------------------------------------
-        # Strategy Signal
-        # -------------------------------------------------
-        #
-
         signal = latest["Signal"]
 
         if signal not in ("BUY", "SELL"):
 
             print(f"Signal     : {signal}")
-
             print(f"Balance    : {self.executor.get_balance():.2f}")
-
             print(f"Equity     : {self.executor.get_equity():.2f}")
 
             return
 
         print(f"Signal     : {signal}")
-
-        #
-        # -------------------------------------------------
-        # Position Size
-        # -------------------------------------------------
-        #
 
         lot_size = self.risk_manager.calculate_position_size(
 
@@ -184,12 +155,6 @@ class LiveRuntime:
             stop_loss=float(latest["StopLoss"]),
 
         )
-
-        #
-        # -------------------------------------------------
-        # Create Paper Trade
-        # -------------------------------------------------
-        #
 
         created = self.executor.execute(
 
@@ -247,6 +212,8 @@ class LiveRuntime:
 
             print("Stopping paper trading...")
 
+            self.stop()
+
         finally:
 
             self.shutdown()
@@ -260,6 +227,14 @@ class LiveRuntime:
     # -------------------------------------------------
 
     def shutdown(self):
+
+        if self.shutdown_complete:
+
+            return
+
+        self.shutdown_complete = True
+
+        self.running = False
 
         print()
 
