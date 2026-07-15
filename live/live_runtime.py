@@ -68,7 +68,10 @@ class LiveRuntime:
         print(f"Mode            : PAPER")
         print(f"Symbol          : {config.SYMBOL}")
         print(f"Timeframe       : {config.TIMEFRAME}")
-        print(f"Risk / Trade    : {config.RISK_PER_TRADE:.2f}%")
+        print(
+        f"Risk / Trade    : "
+        f"{config.RISK_PER_TRADE * 100:.2f}%"
+        )
         print(
             f"Initial Balance : "
             f"{self.executor.get_balance():.2f}"

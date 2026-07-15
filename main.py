@@ -9,7 +9,7 @@ import sys
 import traceback
 
 from runtime.application_runtime import ApplicationRuntime
-
+from core.config_validator import validate
 
 VALID_MODES = {
     "backtest",
@@ -61,6 +61,8 @@ def main() -> None:
 
     try:
 
+        validate()
+        
         app = ApplicationRuntime()
 
         app.run(mode)
