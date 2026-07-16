@@ -579,6 +579,8 @@ class PaperTradeExecutor:
 
         if trade["lot_size"] <= 0:
 
+            trade["exit_reason"] = "PARTIAL_TP_COMPLETE"
+
             exit_price = trade["partial_exits"][-1]["exit_price"]
 
         elif signal == "BUY":

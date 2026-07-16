@@ -1,45 +1,101 @@
-# BTC Trend Trader Changelog
+# Changelog
+
+All notable changes to BTC Trend Trader Professional are documented in this file.
 
 ---
 
-## v3.2.1 – Optimizer Framework
+# v4.4 — Sprint 11 (Current)
+
+## Production Readiness
 
 ### Added
-- Created `optimizer.py`
-- Added optimization settings to `config.py`
-- Added configurable ADX optimization values
 
-### Verified
-- CSV loading
-- Indicator calculation
-- Parameter iteration
-- Configuration restoration
+* Safe application startup
+* Runtime lifecycle logging
+* Idempotent shutdown
+* Startup diagnostics
+* Runtime heartbeat
+* Configuration validation
+* Project documentation
+* Architecture documentation
+* Configuration guide
+* Trade management guide
+* Analytics guide
 
-### Status
-✅ Stable
+### Improved
+
+* Runtime reliability
+* Startup validation
+* Project documentation
+* Overall maintainability
 
 ---
 
-## v3.1 – Diagnostics
+# v4.3
+
+## Analytics
 
 ### Added
-- Strategy diagnostics section
-- BUY/SELL pipeline diagnostics
-- Dashboard diagnostics display
 
-### Status
-✅ Stable
+* Exit reason tracking
+* Exit statistics
+* Trade duration statistics
+* Bars held statistics
+* Enhanced session summary
+* Enhanced CSV logging
 
 ---
 
-## v3.0 – Risk Engine
+# v4.2
+
+## Trade Management
 
 ### Added
-- Dynamic position sizing
-- Pending order architecture
-- Next-candle execution
-- Performance metrics
-- Risk management
 
-### Status
-✅ Stable
+* Break-even management
+* ATR trailing stop
+* Partial profit taking
+* Time exit
+* Risk-based position sizing improvements
+
+---
+
+# v4.1
+
+## Paper Trading
+
+### Added
+
+* Live paper trading runtime
+* Paper trade execution
+* Session summaries
+* Runtime services
+
+---
+
+# v4.0
+
+## Professional Architecture
+
+### Added
+
+* Modular runtime architecture
+* Backtesting framework
+* Risk manager
+* MT5 connector
+* Strategy services
+* Configuration system
+
+---
+
+# Future
+
+## Sprint 12
+
+Planned work:
+
+* Freeze trading logic
+* Complete 100 paper trades
+* Review analytics
+* Small live account deployment
+* Live order execution improvements
