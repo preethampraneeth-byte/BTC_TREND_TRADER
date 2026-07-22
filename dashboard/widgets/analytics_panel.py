@@ -73,6 +73,58 @@ class AnalyticsPanel:
         )
 
         #
+        # Trade Statistics
+        #
+
+        stats = self.analytics.get(
+            "trade_statistics",
+            {},
+        )
+
+        print("\nTRADE STATISTICS")
+        print("-" * 60)
+
+        print(
+            f"Total Trades            : "
+            f"{stats.get('total_trades', 0)}"
+        )
+
+        print(
+            f"Winning Trades          : "
+            f"{stats.get('winning_trades', 0)}"
+        )
+
+        print(
+            f"Losing Trades           : "
+            f"{stats.get('losing_trades', 0)}"
+        )
+
+        print(
+            f"Average Profit          : "
+            f"{stats.get('average_profit', 0)}"
+        )
+
+        print(
+            f"Average Win             : "
+            f"{stats.get('average_win', 0)}"
+        )
+
+        print(
+            f"Average Loss            : "
+            f"{stats.get('average_loss', 0)}"
+        )
+
+        print(
+            f"Largest Win             : "
+            f"{stats.get('largest_win', 0)}"
+        )
+
+        print(
+            f"Largest Loss            : "
+            f"{stats.get('largest_loss', 0)}"
+        )
+
+        #
         # Streak Analysis
         #
 
@@ -82,7 +134,7 @@ class AnalyticsPanel:
         )
 
         print(
-            f"Current Win Streak      : "
+            f"\nCurrent Win Streak      : "
             f"{streak.get('current_win_streak', 0)}"
         )
 
