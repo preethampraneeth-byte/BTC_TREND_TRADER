@@ -1,7 +1,8 @@
 from config import (
     ADX_THRESHOLD,
     RSI_BUY_LEVEL,
-    RSI_SELL_LEVEL
+    RSI_SELL_LEVEL,
+    EMA_DISTANCE_ATR_MULTIPLIER
 )
 
 
@@ -42,6 +43,8 @@ def check_signal(df):
     # -------------------------
 
     trending = current["ADX"] >= ADX_THRESHOLD
+    ema_distance = abs(current["EMA_FAST"] - current["EMA_SLOW"])
+    minimum_distance = current["ATR"] * EMA_DISTANCE_ATR_MULTIPLIER
 
     # -------------------------
     # BUY
@@ -52,6 +55,7 @@ def check_signal(df):
         and trending
         and current["RSI"] <= RSI_BUY_LEVEL
         and current["close"] > current["EMA_FAST"]
+        and ema_distance >= minimum_distance
     ):
         signal = "BUY"
 
