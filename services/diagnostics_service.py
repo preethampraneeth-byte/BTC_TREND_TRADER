@@ -31,9 +31,9 @@ class DiagnosticsService:
 
         adx_ok = candles["ADX"] > config.ADX_THRESHOLD
 
-        rsi_buy = candles["RSI"] > config.RSI_BUY_LEVEL
+        rsi_buy = candles["RSI"] <= config.RSI_BUY_LEVEL
 
-        rsi_sell = candles["RSI"] < config.RSI_SELL_LEVEL
+        rsi_sell = candles["RSI"] >= config.RSI_SELL_LEVEL
 
         buy_step1 = ema_fast > ema_slow
         buy_step2 = buy_step1 & strong_trend

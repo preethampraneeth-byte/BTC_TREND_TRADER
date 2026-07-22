@@ -7,6 +7,7 @@ from config import (
 
 
 def check_signal(df):
+    print("Using strategy.py")
     """
     Trend Continuation Strategy
 
@@ -53,9 +54,9 @@ def check_signal(df):
     if (
         trend == "BULLISH"
         and trending
-        and current["RSI"] <= RSI_BUY_LEVEL
+    #   and current["RSI"] <= RSI_BUY_LEVEL
         and current["close"] > current["EMA_FAST"]
-        and ema_distance >= minimum_distance
+    #   and ema_distance >= minimum_distance
     ):
         signal = "BUY"
 
