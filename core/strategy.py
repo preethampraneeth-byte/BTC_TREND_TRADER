@@ -73,7 +73,7 @@ class Strategy:
 
             & (data["ADX"] > config.ADX_THRESHOLD)
 
-            & (data["RSI"] > config.RSI_BUY_LEVEL)
+            & (data["RSI"] <= config.RSI_BUY_LEVEL)
 
         )
 
@@ -90,7 +90,7 @@ class Strategy:
 
             & (data["ADX"] > config.ADX_THRESHOLD)
 
-            & (data["RSI"] < config.RSI_SELL_LEVEL)
+            & (data["RSI"] >= config.RSI_SELL_LEVEL)
 
         )
 
