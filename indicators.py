@@ -1,8 +1,8 @@
 import pandas_ta as ta
 
 from config import (
-    FAST_EMA,
-    SLOW_EMA,
+    EMA_FAST,
+    EMA_SLOW,
     ATR_PERIOD,
     ADX_PERIOD,
     RSI_PERIOD
@@ -17,12 +17,12 @@ def calculate_indicators(df):
     # EMA
     df["EMA_FAST"] = ta.ema(
         df["close"],
-        length=FAST_EMA
+        length=EMA_FAST
     )
 
     df["EMA_SLOW"] = ta.ema(
         df["close"],
-        length=SLOW_EMA
+        length=EMA_SLOW
     )
 
     # ATR
