@@ -15,7 +15,7 @@ import os
 
 import config
 from core.risk_manager import RiskManager
-
+from core.trade_management_service import TradeManagementService
 
 class PaperTradeExecutor:
     """
@@ -47,6 +47,10 @@ class PaperTradeExecutor:
         self.last_trade_time = None
 
         self.risk_manager = RiskManager()
+        
+        self.trade_management = TradeManagementService(
+            self.risk_manager
+        )
 
         os.makedirs(config.LOG_FOLDER, exist_ok=True)
 
@@ -151,7 +155,22 @@ class PaperTradeExecutor:
         trade["bars_in_trade"] += 1
 
         # 1. Break-even
-        self._update_break_even(trade, high, low, signal)
+        activated = self.trade_management.update_break_even(
+            trade,
+            high,
+            low,
+        )
+
+        if activated:
+
+            print()
+
+            print("✓ Break-even activated")
+
+            print(
+                f"New Stop Loss : "
+                f"{trade['stop_loss']:.2f}"
+            )
 
         # 2. ATR Trailing
         self._update_trailing_stop(trade, high, low, atr, signal)
@@ -188,88 +207,7 @@ class PaperTradeExecutor:
         return self._close_trade(trade, exit_price, timestamp, signal)
 
     # -------------------------------------------------
-
-    def _update_break_even(self, trade, high, low, signal):
-
-        #
-        # Break-even Management
-        #
-
-        if (
-            config.ENABLE_BREAK_EVEN
-            and not trade["break_even_activated"]
-        ):
-
-            initial_risk = abs(
-                trade["entry_price"]
-                - trade["initial_stop_loss"]
-            )
-
-            if signal == "BUY":
-
-                trigger_price = (
-                    trade["entry_price"]
-                    + (
-                        initial_risk
-                        * config.BREAK_EVEN_R
-                    )
-                )
-
-                current_price = high
-
-            else:
-
-                trigger_price = (
-                    trade["entry_price"]
-                    - (
-                        initial_risk
-                        * config.BREAK_EVEN_R
-                    )
-                )
-
-                current_price = low
-
-            new_stop = self.risk_manager.calculate_break_even_stop(
-
-                entry_price=trade["entry_price"],
-
-                current_stop=trade["stop_loss"],
-
-                current_price=current_price,
-
-                side=signal,
-
-                trigger_price=trigger_price,
-
-                lock_in=config.BREAK_EVEN_OFFSET,
-
-            )
-
-            if new_stop != trade["stop_loss"]:
-
-                trade["stop_loss"] = new_stop
-
-                trade["break_even_activated"] = True
-
-                print()
-
-                print("✓ Break-even activated")
-
-                print(
-                    f"Trigger Price : "
-                    f"{trigger_price:.2f}"
-                )
-
-                print(
-                    f"Entry Price   : "
-                    f"{trade['entry_price']:.2f}"
-                )
-
-                print(
-                    f"New Stop Loss : "
-                    f"{new_stop:.2f}"
-                )
-
+    
     # -------------------------------------------------
 
     def _update_trailing_stop(self, trade, high, low, atr, signal):

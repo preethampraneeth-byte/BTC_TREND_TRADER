@@ -20,6 +20,8 @@ This service does NOT:
 
 from __future__ import annotations
 
+import config
+
 
 class TradeManagementService:
     """
@@ -38,7 +40,59 @@ class TradeManagementService:
 
     def update_break_even(self, trade, high, low):
 
-        raise NotImplementedError
+        if (
+            not config.ENABLE_BREAK_EVEN
+            or trade["break_even_activated"]
+        ):
+            return False
+
+        initial_risk = abs(
+            trade["entry_price"]
+            - trade["initial_stop_loss"]
+        )
+
+        signal = trade["signal"]
+
+        if signal == "BUY":
+
+            trigger_price = (
+                trade["entry_price"]
+                + (
+                    initial_risk
+                    * config.BREAK_EVEN_R
+                )
+            )
+
+            current_price = high
+
+        else:
+
+            trigger_price = (
+                trade["entry_price"]
+                - (
+                    initial_risk
+                    * config.BREAK_EVEN_R
+                )
+            )
+
+            current_price = low
+
+        new_stop = self.risk_manager.calculate_break_even_stop(
+            entry_price=trade["entry_price"],
+            current_stop=trade["stop_loss"],
+            current_price=current_price,
+            side=signal,
+            trigger_price=trigger_price,
+            lock_in=config.BREAK_EVEN_OFFSET,
+        )
+
+        if new_stop == trade["stop_loss"]:
+            return False
+
+        trade["stop_loss"] = new_stop
+        trade["break_even_activated"] = True
+
+        return True
 
     # -------------------------------------------------
 
