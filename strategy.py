@@ -1,5 +1,5 @@
 from config import (
-    ADX_MINIMUM,
+    ADX_THRESHOLD,
     RSI_BUY_LEVEL,
     RSI_SELL_LEVEL
 )
@@ -11,13 +11,13 @@ def check_signal(df):
 
     BUY:
         EMA_FAST > EMA_SLOW
-        ADX > ADX_MINIMUM
+        ADX > ADX_THRESHOLD
         RSI < RSI_BUY_LEVEL
         Close > EMA_FAST
 
     SELL:
         EMA_FAST < EMA_SLOW
-        ADX > ADX_MINIMUM
+        ADX > ADX_THRESHOLD
         RSI > RSI_SELL_LEVEL
         Close < EMA_FAST
     """
@@ -41,7 +41,7 @@ def check_signal(df):
     # Trend Strength
     # -------------------------
 
-    trending = current["ADX"] >= ADX_MINIMUM
+    trending = current["ADX"] >= ADX_THRESHOLD
 
     # -------------------------
     # BUY
