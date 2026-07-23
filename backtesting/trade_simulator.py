@@ -334,6 +334,8 @@ class TradeSimulator:
 
         trade.bars_in_trade += 1
 
+        direction = trade.direction.upper()
+
         trade_dict = self._trade_to_dict(trade)
 
         self.trade_management.update_break_even(
@@ -373,7 +375,7 @@ class TradeSimulator:
         # BUY
         # ---------------------------------------------
 
-        if trade.direction.upper() == "BUY":
+        if direction == "BUY":
 
             if low <= trade.stop_loss:
 
