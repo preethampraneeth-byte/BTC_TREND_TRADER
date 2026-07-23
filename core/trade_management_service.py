@@ -98,7 +98,89 @@ class TradeManagementService:
 
     def update_trailing_stop(self, trade, high, low, atr):
 
-        raise NotImplementedError
+        trade["highest_price"] = max(
+            trade["highest_price"],
+            float(high),
+        )
+
+        trade["lowest_price"] = min(
+            trade["lowest_price"],
+            float(low),
+        )
+
+        if (
+            not config.ENABLE_TRAILING_STOP
+            or atr is None
+        ):
+            return False
+
+        initial_risk = abs(
+            trade["entry_price"]
+            - trade["initial_stop_loss"]
+        )
+
+        trail_distance = (
+            float(atr)
+            * config.TRAILING_STOP_ATR
+        )
+
+        if (
+            initial_risk <= 0
+            or trail_distance <= 0
+        ):
+            return False
+
+        signal = trade["signal"]
+
+        if signal == "BUY":
+
+            trigger_price = (
+                trade["entry_price"]
+                + (
+                    initial_risk
+                    * config.TRAILING_START_R
+                )
+            )
+
+            trailing_price = trade["highest_price"]
+
+            trailing_ready = (
+                trailing_price >= trigger_price
+            )
+
+        else:
+
+            trigger_price = (
+                trade["entry_price"]
+                - (
+                    initial_risk
+                    * config.TRAILING_START_R
+                )
+            )
+
+            trailing_price = trade["lowest_price"]
+
+            trailing_ready = (
+                trailing_price <= trigger_price
+            )
+
+        if not trailing_ready:
+            return False
+
+        new_stop = self.risk_manager.calculate_trailing_stop(
+            current_stop=trade["stop_loss"],
+            current_price=trailing_price,
+            trail_distance=trail_distance,
+            side=signal,
+        )
+
+        if new_stop == trade["stop_loss"]:
+            return False
+
+        trade["stop_loss"] = new_stop
+        trade["trailing_stop_activated"] = True
+
+        return True
 
     # -------------------------------------------------
 

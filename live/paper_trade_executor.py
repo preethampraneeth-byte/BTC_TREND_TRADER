@@ -173,7 +173,23 @@ class PaperTradeExecutor:
             )
 
         # 2. ATR Trailing
-        self._update_trailing_stop(trade, high, low, atr, signal)
+        activated = self.trade_management.update_trailing_stop(
+            trade,
+            high,
+            low,
+            atr,
+        )
+
+        if activated:
+
+            print()
+
+            print("Trailing stop updated")
+
+            print(
+                f"New Stop Loss : "
+                f"{trade['stop_loss']:.2f}"
+            )
 
         # 3. Partial Profit
         self._update_partial_profit(trade, high, low, timestamp, signal)
@@ -208,120 +224,6 @@ class PaperTradeExecutor:
 
     # -------------------------------------------------
     
-    # -------------------------------------------------
-
-    def _update_trailing_stop(self, trade, high, low, atr, signal):
-
-        #
-        # ATR Trailing Stop Management
-        #
-
-        trade["highest_price"] = max(
-            trade["highest_price"],
-            float(high),
-        )
-
-        trade["lowest_price"] = min(
-            trade["lowest_price"],
-            float(low),
-        )
-
-        if (
-            config.ENABLE_TRAILING_STOP
-            and atr is not None
-        ):
-
-            initial_risk = abs(
-                trade["entry_price"]
-                - trade["initial_stop_loss"]
-            )
-
-            trail_distance = (
-                float(atr)
-                * config.TRAILING_STOP_ATR
-            )
-
-            if (
-                initial_risk > 0
-                and trail_distance > 0
-            ):
-
-                if signal == "BUY":
-
-                    trigger_price = (
-                        trade["entry_price"]
-                        + (
-                            initial_risk
-                            * config.TRAILING_START_R
-                        )
-                    )
-
-                    trailing_price = trade["highest_price"]
-
-                    trailing_ready = (
-                        trailing_price >= trigger_price
-                    )
-
-                else:
-
-                    trigger_price = (
-                        trade["entry_price"]
-                        - (
-                            initial_risk
-                            * config.TRAILING_START_R
-                        )
-                    )
-
-                    trailing_price = trade["lowest_price"]
-
-                    trailing_ready = (
-                        trailing_price <= trigger_price
-                    )
-
-                if trailing_ready:
-
-                    new_stop = self.risk_manager.calculate_trailing_stop(
-
-                        current_stop=trade["stop_loss"],
-
-                        current_price=trailing_price,
-
-                        trail_distance=trail_distance,
-
-                        side=signal,
-
-                    )
-
-                    if new_stop != trade["stop_loss"]:
-
-                        trade["stop_loss"] = new_stop
-
-                        trade["trailing_stop_activated"] = True
-
-                        print()
-
-                        print("Trailing stop updated")
-
-                        print(
-                            f"Trigger Price : "
-                            f"{trigger_price:.2f}"
-                        )
-
-                        print(
-                            f"Trail Price   : "
-                            f"{trailing_price:.2f}"
-                        )
-
-                        print(
-                            f"ATR Distance  : "
-                            f"{trail_distance:.2f}"
-                        )
-
-                        print(
-                            f"New Stop Loss : "
-                            f"{new_stop:.2f}"
-                        )
-
     # -------------------------------------------------
 
     def _update_partial_profit(self, trade, high, low, timestamp, signal):
