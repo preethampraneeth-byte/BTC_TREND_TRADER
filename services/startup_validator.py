@@ -7,17 +7,16 @@ before execution begins.
 
 from __future__ import annotations
 
-import config
-
 from services.configuration_manager import ConfigurationManager
 
-class StartupValidator:
 
-    def __init__(self):
-        self.config = ConfigurationManager()
+class StartupValidator:
     """
     Validates application startup requirements.
     """
+
+    def __init__(self):
+        self.config = ConfigurationManager()
 
     def validate(self):
         """
@@ -60,7 +59,9 @@ class StartupValidator:
     def _validate_risk(self):
         """Ensure risk per trade is within a valid range."""
 
-        if not 0 < config.RISK_PER_TRADE <= 1:
+        risk = self.config.get("RISK_PER_TRADE")
+
+        if not 0 < risk <= 1:
             raise ValueError(
                 "RISK_PER_TRADE must be between 0 and 1."
             )
@@ -70,7 +71,7 @@ class StartupValidator:
     def _validate_rr_ratio(self):
         """Ensure the reward-to-risk ratio is valid."""
 
-        if config.RR_RATIO <= 0:
+        if self.config.get("RR_RATIO") <= 0:
             raise ValueError(
                 "RR_RATIO must be greater than 0."
             )
@@ -80,17 +81,17 @@ class StartupValidator:
     def _validate_atr_settings(self):
         """Ensure ATR-related settings are valid."""
 
-        if config.ATR_PERIOD <= 0:
+        if self.config.get("ATR_PERIOD") <= 0:
             raise ValueError(
                 "ATR_PERIOD must be greater than 0."
             )
 
-        if config.ATR_SL_MULTIPLIER <= 0:
+        if self.config.get("ATR_SL_MULTIPLIER") <= 0:
             raise ValueError(
                 "ATR_SL_MULTIPLIER must be greater than 0."
             )
 
-        if config.TRAILING_STOP_ATR <= 0:
+        if self.config.get("TRAILING_STOP_ATR") <= 0:
             raise ValueError(
                 "TRAILING_STOP_ATR must be greater than 0."
             )
@@ -100,33 +101,34 @@ class StartupValidator:
     def _validate_partial_profit(self):
         """Ensure partial profit configuration is valid."""
 
-        if not config.ENABLE_PARTIAL_TP:
+        if not self.config.get("ENABLE_PARTIAL_TP"):
             return
 
-        if len(config.PARTIAL_TP_LEVELS) != len(config.PARTIAL_TP_PERCENTAGES):
+        levels = self.config.get("PARTIAL_TP_LEVELS")
+        percentages = self.config.get("PARTIAL_TP_PERCENTAGES")
+
+        if len(levels) != len(percentages):
             raise ValueError(
                 "PARTIAL_TP_LEVELS and PARTIAL_TP_PERCENTAGES must have the same length."
             )
 
-        if len(config.PARTIAL_TP_LEVELS) == 0:
+        if len(levels) == 0:
             raise ValueError(
                 "At least one partial take-profit level is required."
             )
 
-        total_percentage = sum(config.PARTIAL_TP_PERCENTAGES)
-
-        if total_percentage != 100:
+        if sum(percentages) != 100:
             raise ValueError(
                 "PARTIAL_TP_PERCENTAGES must total exactly 100."
             )
 
-        for level in config.PARTIAL_TP_LEVELS:
+        for level in levels:
             if level <= 0:
                 raise ValueError(
                     "All PARTIAL_TP_LEVELS must be greater than 0."
                 )
 
-        for percentage in config.PARTIAL_TP_PERCENTAGES:
+        for percentage in percentages:
             if percentage <= 0:
                 raise ValueError(
                     "All PARTIAL_TP_PERCENTAGES must be greater than 0."
@@ -137,10 +139,10 @@ class StartupValidator:
     def _validate_time_exit(self):
         """Ensure time exit configuration is valid."""
 
-        if not config.ENABLE_TIME_EXIT:
+        if not self.config.get("ENABLE_TIME_EXIT"):
             return
 
-        if config.MAX_BARS_IN_TRADE <= 0:
+        if self.config.get("MAX_BARS_IN_TRADE") <= 0:
             raise ValueError(
                 "MAX_BARS_IN_TRADE must be greater than 0."
             )
