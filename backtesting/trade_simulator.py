@@ -356,11 +356,10 @@ class TradeSimulator:
         
         if time_exit_price is not None:
             self._close_trade(
-                trade,
-                time_exit_price,
-                "TIME_EXIT",
-                current_time,
-            )
+            time_exit_price,
+            current_time,
+            "TIME_EXIT",
+        )
             return
 
         self._update_trade_from_dict(
