@@ -300,6 +300,20 @@ class TradeSimulator:
             "exit_reason": trade.exit_reason,
         }
 
+    def _update_trade_from_dict(self, trade, trade_dict):
+        trade.stop_loss = trade_dict["stop_loss"]
+        trade.break_even_activated = trade_dict["break_even_activated"]
+        trade.highest_price = trade_dict["highest_price"]
+        trade.lowest_price = trade_dict["lowest_price"]
+        trade.remaining_lot_size = trade_dict["remaining_lot_size"]
+        trade.partial_tp_hits = trade_dict["partial_tp_hits"]
+        trade.partial_exits = trade_dict["partial_exits"]
+        trade.partial_profit = trade_dict["partial_profit"]
+        trade.bars_in_trade = trade_dict["bars_in_trade"]
+        trade.entry_bar = trade_dict["entry_bar"]
+        trade.time_exit_enabled = trade_dict["time_exit_enabled"]
+        trade.exit_reason = trade_dict["exit_reason"]
+
     # -----------------------------------------------------
     def update_trade(
         self,
