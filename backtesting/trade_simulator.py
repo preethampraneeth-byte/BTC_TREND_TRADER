@@ -313,8 +313,6 @@ class TradeSimulator:
         trade.partial_exits = trade_dict["partial_exits"]
         trade.partial_profit = trade_dict["partial_profit"]
         trade.bars_in_trade = trade_dict["bars_in_trade"]
-        trade.entry_bar = trade_dict["entry_bar"]
-        trade.time_exit_enabled = trade_dict["time_exit_enabled"]
         trade.exit_reason = trade_dict["exit_reason"]
 
     # -----------------------------------------------------
