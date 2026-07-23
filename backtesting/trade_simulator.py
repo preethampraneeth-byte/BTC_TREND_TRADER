@@ -278,6 +278,28 @@ class TradeSimulator:
 
         return True
 
+    def _trade_to_dict(self, trade):
+        return {
+            "signal": trade.direction,
+            "entry_price": trade.entry_price,
+            "stop_loss": trade.stop_loss,
+            "initial_stop_loss": trade.initial_stop_loss,
+            "take_profit": trade.take_profit,
+            "lot_size": trade.lot_size,
+            "initial_lot_size": trade.initial_lot_size,
+            "remaining_lot_size": trade.remaining_lot_size,
+            "break_even_activated": trade.break_even_activated,
+            "highest_price": trade.highest_price,
+            "lowest_price": trade.lowest_price,
+            "partial_tp_hits": trade.partial_tp_hits,
+            "partial_exits": trade.partial_exits,
+            "partial_profit": trade.partial_profit,
+            "bars_in_trade": trade.bars_in_trade,
+            "entry_bar": trade.entry_bar,
+            "time_exit_enabled": trade.time_exit_enabled,
+            "exit_reason": trade.exit_reason,
+        }
+
     # -----------------------------------------------------
     def update_trade(
         self,
