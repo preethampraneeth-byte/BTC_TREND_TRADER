@@ -376,17 +376,7 @@ class TradeSimulator:
         # ---------------------------------------------
         # Track highest / lowest price reached
         # ---------------------------------------------
-
-        trade.highest_price = max(
-            trade.highest_price,
-            high,
-        )
-
-        trade.lowest_price = min(
-            trade.lowest_price,
-            low,
-        )
-
+        
         # ---------------------------------------------
         # BUY
         # ---------------------------------------------
