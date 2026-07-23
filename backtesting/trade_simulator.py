@@ -280,6 +280,7 @@ class TradeSimulator:
 
     def _trade_to_dict(self, trade):
         return {
+            "profit": trade.profit,
             "signal": trade.direction,
             "entry_price": trade.entry_price,
             "stop_loss": trade.stop_loss,
@@ -301,6 +302,8 @@ class TradeSimulator:
         }
 
     def _update_trade_from_dict(self, trade, trade_dict):
+        trade.lot_size = trade_dict["lot_size"]
+        trade.profit = trade_dict["profit"]
         trade.stop_loss = trade_dict["stop_loss"]
         trade.break_even_activated = trade_dict["break_even_activated"]
         trade.highest_price = trade_dict["highest_price"]
