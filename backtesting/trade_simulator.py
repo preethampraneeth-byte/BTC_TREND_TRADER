@@ -330,6 +330,13 @@ class TradeSimulator:
 
         trade.bars_in_trade += 1
 
+        trade_dict = self._trade_to_dict(trade)
+
+        self._update_trade_from_dict(
+            trade,
+            trade_dict,
+        )
+
         # ---------------------------------------------
         # Track highest / lowest price reached
         # ---------------------------------------------
