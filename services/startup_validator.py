@@ -16,16 +16,14 @@ class StartupValidator:
     """
 
     def validate(self):
-        """
-        Validate application configuration.
-        Raises ValueError if a configuration value is invalid.
-        """
+        """Validate application configuration."""
 
         self._validate_backtest_balance()
         self._validate_paper_balance()
         self._validate_risk()
         self._validate_rr_ratio()
         self._validate_atr_settings()
+        self._validate_partial_profit()
 
         return True
 
@@ -83,3 +81,39 @@ class StartupValidator:
             raise ValueError(
                 "TRAILING_STOP_ATR must be greater than 0."
             )
+
+    # -------------------------------------------------
+
+    def _validate_partial_profit(self):
+
+        if not config.ENABLE_PARTIAL_TP:
+            return
+
+        if len(config.PARTIAL_TP_LEVELS) != len(config.PARTIAL_TP_PERCENTAGES):
+            raise ValueError(
+                "PARTIAL_TP_LEVELS and PARTIAL_TP_PERCENTAGES must have the same length."
+            )
+
+        if len(config.PARTIAL_TP_LEVELS) == 0:
+            raise ValueError(
+                "At least one partial take-profit level is required."
+            )
+
+        total_percentage = sum(config.PARTIAL_TP_PERCENTAGES)
+
+        if total_percentage != 100:
+            raise ValueError(
+                "PARTIAL_TP_PERCENTAGES must total exactly 100."
+            )
+
+        for level in config.PARTIAL_TP_LEVELS:
+            if level <= 0:
+                raise ValueError(
+                    "All PARTIAL_TP_LEVELS must be greater than 0."
+                )
+
+        for percentage in config.PARTIAL_TP_PERCENTAGES:
+            if percentage <= 0:
+                raise ValueError(
+                    "All PARTIAL_TP_PERCENTAGES must be greater than 0."
+                )
