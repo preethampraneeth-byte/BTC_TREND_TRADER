@@ -16,7 +16,10 @@ class StartupValidator:
     """
 
     def validate(self):
-        """Validate application configuration."""
+        """
+        Validate application configuration.
+        Raises ValueError if a configuration value is invalid.
+        """
 
         self._validate_backtest_balance()
         self._validate_paper_balance()
@@ -24,12 +27,14 @@ class StartupValidator:
         self._validate_rr_ratio()
         self._validate_atr_settings()
         self._validate_partial_profit()
+        self._validate_time_exit()
 
         return True
 
     # -------------------------------------------------
 
     def _validate_backtest_balance(self):
+        """Ensure the backtest starting balance is valid."""
 
         if config.INITIAL_BALANCE <= 0:
             raise ValueError(
@@ -39,6 +44,7 @@ class StartupValidator:
     # -------------------------------------------------
 
     def _validate_paper_balance(self):
+        """Ensure the paper trading starting balance is valid."""
 
         if config.PAPER_STARTING_BALANCE <= 0:
             raise ValueError(
@@ -48,6 +54,7 @@ class StartupValidator:
     # -------------------------------------------------
 
     def _validate_risk(self):
+        """Ensure risk per trade is within a valid range."""
 
         if not 0 < config.RISK_PER_TRADE <= 1:
             raise ValueError(
@@ -57,6 +64,7 @@ class StartupValidator:
     # -------------------------------------------------
 
     def _validate_rr_ratio(self):
+        """Ensure the reward-to-risk ratio is valid."""
 
         if config.RR_RATIO <= 0:
             raise ValueError(
@@ -66,6 +74,7 @@ class StartupValidator:
     # -------------------------------------------------
 
     def _validate_atr_settings(self):
+        """Ensure ATR-related settings are valid."""
 
         if config.ATR_PERIOD <= 0:
             raise ValueError(
@@ -85,6 +94,7 @@ class StartupValidator:
     # -------------------------------------------------
 
     def _validate_partial_profit(self):
+        """Ensure partial profit configuration is valid."""
 
         if not config.ENABLE_PARTIAL_TP:
             return
@@ -117,3 +127,16 @@ class StartupValidator:
                 raise ValueError(
                     "All PARTIAL_TP_PERCENTAGES must be greater than 0."
                 )
+
+    # -------------------------------------------------
+
+    def _validate_time_exit(self):
+        """Ensure time exit configuration is valid."""
+
+        if not config.ENABLE_TIME_EXIT:
+            return
+
+        if config.MAX_BARS_IN_TRADE <= 0:
+            raise ValueError(
+                "MAX_BARS_IN_TRADE must be greater than 0."
+            )
