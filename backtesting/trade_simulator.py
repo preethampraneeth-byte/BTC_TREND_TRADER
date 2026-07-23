@@ -292,6 +292,8 @@ class TradeSimulator:
 
         trade = self.current_trade
 
+        trade.bars_in_trade += 1
+
         # ---------------------------------------------
         # Track highest / lowest price reached
         # ---------------------------------------------
