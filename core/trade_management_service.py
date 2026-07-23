@@ -309,10 +309,27 @@ def update_partial_profit(
 
     # -------------------------------------------------
 
-    def check_time_exit(
-        self,
-        trade,
-        close,
-    ):
+def check_time_exit(
+    self,
+    trade,
+    close,
+):
 
-        raise NotImplementedError
+    if not config.ENABLE_TIME_EXIT:
+        return None
+
+    if not trade["time_exit_enabled"]:
+        return None
+
+    if trade["break_even_activated"]:
+        return None
+
+    if trade["trailing_stop_activated"]:
+        return None
+
+    if trade["bars_in_trade"] < config.MAX_BARS_IN_TRADE:
+        return None
+
+    trade["exit_reason"] = "TIME_EXIT"
+
+    return float(close)

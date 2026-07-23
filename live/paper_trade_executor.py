@@ -245,9 +245,25 @@ class PaperTradeExecutor:
 
         if exit_price is None:
 
-            exit_price = self._check_time_exit(
-                trade,
-                close,
+            exit_price = self.trade_management.check_time_exit(
+            trade,
+            close,
+        )
+
+        if exit_price is not None:
+
+            print()
+
+            print("Time Exit triggered")
+
+            print(
+                f"Bars Held  : "
+                f"{trade['bars_in_trade']}"
+            )
+
+            print(
+                f"Exit Price : "
+                f"{close:.2f}"
             )
 
         # 6. Floating Equity
@@ -265,41 +281,6 @@ class PaperTradeExecutor:
     # -------------------------------------------------
 
     # -------------------------------------------------
-
-    def _check_time_exit(self, trade, close):
-
-        if not config.ENABLE_TIME_EXIT:
-            return None
-
-        if not trade["time_exit_enabled"]:
-            return None
-
-        if trade["break_even_activated"]:
-            return None
-
-        if trade["trailing_stop_activated"]:
-            return None
-
-        if trade["bars_in_trade"] < config.MAX_BARS_IN_TRADE:
-            return None
-
-        print()
-
-        print("Time Exit triggered")
-
-        print(
-            f"Bars Held  : "
-            f"{trade['bars_in_trade']}"
-        )
-
-        print(
-            f"Exit Price : "
-            f"{close:.2f}"
-        )
-
-        trade["exit_reason"] = "TIME_EXIT"
-
-        return float(close)
 
     # -------------------------------------------------
 
