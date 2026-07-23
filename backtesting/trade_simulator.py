@@ -321,6 +321,7 @@ class TradeSimulator:
         low,
         close,
         current_time,
+        atr,
     ):
 
         if self.current_trade is None:
@@ -336,6 +337,13 @@ class TradeSimulator:
             trade_dict,
             high,
             low,
+        )
+
+        self.trade_management.update_trailing_stop(
+            trade_dict,
+            high,
+            low,
+            atr,
         )
 
         self._update_trade_from_dict(

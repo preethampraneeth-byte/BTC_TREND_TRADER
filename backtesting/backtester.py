@@ -81,6 +81,7 @@ class Backtester:
                 low=row["Low"],
                 close=row["Close"],
                 current_time=row["Time"],
+                atr=row["ATR"],
             )
 
             # ---------------------------------------------
