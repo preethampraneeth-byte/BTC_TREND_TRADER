@@ -296,7 +296,6 @@ class TradeSimulator:
             "partial_exits": trade.partial_exits,
             "partial_profit": trade.partial_profit,
             "bars_in_trade": trade.bars_in_trade,
-            "entry_bar": trade.entry_bar,
             "time_exit_enabled": trade.time_exit_enabled,
             "exit_reason": trade.exit_reason,
         }
