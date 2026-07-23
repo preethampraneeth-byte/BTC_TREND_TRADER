@@ -25,15 +25,13 @@ class StartupValidator:
         self._validate_paper_balance()
         self._validate_risk()
         self._validate_rr_ratio()
+        self._validate_atr_settings()
 
         return True
 
     # -------------------------------------------------
 
     def _validate_backtest_balance(self):
-        """
-        Ensure the backtest starting balance is valid.
-        """
 
         if config.INITIAL_BALANCE <= 0:
             raise ValueError(
@@ -43,9 +41,6 @@ class StartupValidator:
     # -------------------------------------------------
 
     def _validate_paper_balance(self):
-        """
-        Ensure the paper trading starting balance is valid.
-        """
 
         if config.PAPER_STARTING_BALANCE <= 0:
             raise ValueError(
@@ -55,9 +50,6 @@ class StartupValidator:
     # -------------------------------------------------
 
     def _validate_risk(self):
-        """
-        Ensure risk per trade is within a valid range.
-        """
 
         if not 0 < config.RISK_PER_TRADE <= 1:
             raise ValueError(
@@ -67,11 +59,27 @@ class StartupValidator:
     # -------------------------------------------------
 
     def _validate_rr_ratio(self):
-        """
-        Ensure the reward-to-risk ratio is valid.
-        """
 
         if config.RR_RATIO <= 0:
             raise ValueError(
                 "RR_RATIO must be greater than 0."
+            )
+
+    # -------------------------------------------------
+
+    def _validate_atr_settings(self):
+
+        if config.ATR_PERIOD <= 0:
+            raise ValueError(
+                "ATR_PERIOD must be greater than 0."
+            )
+
+        if config.ATR_SL_MULTIPLIER <= 0:
+            raise ValueError(
+                "ATR_SL_MULTIPLIER must be greater than 0."
+            )
+
+        if config.TRAILING_STOP_ATR <= 0:
+            raise ValueError(
+                "TRAILING_STOP_ATR must be greater than 0."
             )
