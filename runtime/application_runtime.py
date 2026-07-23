@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from runtime.backtest_runtime import BacktestRuntime
 from services.live_trading_service import LiveTradingService
+from services.startup_validator import StartupValidator
 
 
 class ApplicationRuntime:
@@ -24,6 +25,8 @@ class ApplicationRuntime:
         self.backtest = BacktestRuntime()
 
         self.live = LiveTradingService()
+
+        self.startup_validator = StartupValidator()
 
     # -------------------------------------------------
 
@@ -43,6 +46,8 @@ class ApplicationRuntime:
         print(f"ApplicationRuntime: starting '{mode}' mode.")
 
         try:
+
+            self.startup_validator.validate()
 
             if mode == "backtest":
 
