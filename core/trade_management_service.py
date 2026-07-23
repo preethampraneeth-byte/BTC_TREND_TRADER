@@ -184,152 +184,152 @@ class TradeManagementService:
 
     # -------------------------------------------------
 
-def update_partial_profit(
-    self,
-    trade,
-    high,
-    low,
-    timestamp,
-):
+    def update_partial_profit(
+        self,
+        trade,
+        high,
+        low,
+        timestamp,
+    ):
 
-    if not config.ENABLE_PARTIAL_TP:
+        if not config.ENABLE_PARTIAL_TP:
+            return None
+
+        initial_risk = abs(
+            trade["entry_price"]
+            - trade["initial_stop_loss"]
+        )
+
+        for index, level in enumerate(config.PARTIAL_TP_LEVELS):
+
+            if index >= len(config.PARTIAL_TP_PERCENTAGES):
+                continue
+
+            if index >= len(trade["partial_tp_hits"]):
+                continue
+
+            if trade["partial_tp_hits"][index]:
+                continue
+
+            if trade["lot_size"] <= 0:
+                continue
+
+            if initial_risk <= 0:
+                continue
+
+            signal = trade["signal"]
+
+            if signal == "BUY":
+
+                partial_price = (
+                    trade["entry_price"]
+                    + initial_risk * level
+                )
+
+                partial_hit = high >= partial_price
+
+            else:
+
+                partial_price = (
+                    trade["entry_price"]
+                    - initial_risk * level
+                )
+
+                partial_hit = low <= partial_price
+
+            if not partial_hit:
+                continue
+
+            close_lot = (
+                trade["initial_lot_size"]
+                * (
+                    config.PARTIAL_TP_PERCENTAGES[index]
+                    / 100
+                )
+            )
+
+            close_lot = min(
+                close_lot,
+                trade["lot_size"],
+            )
+
+            if close_lot <= 0:
+                continue
+
+            if signal == "BUY":
+
+                partial_profit = (
+                    partial_price
+                    - trade["entry_price"]
+                ) * close_lot
+
+            else:
+
+                partial_profit = (
+                    trade["entry_price"]
+                    - partial_price
+                ) * close_lot
+
+            trade["lot_size"] -= close_lot
+
+            if trade["lot_size"] < 0:
+                trade["lot_size"] = 0.0
+
+            trade["remaining_lot_size"] = trade["lot_size"]
+
+            trade["partial_tp_hits"][index] = True
+
+            trade["partial_profit"] += partial_profit
+
+            trade["profit"] += partial_profit
+
+            partial_exit = {
+                "level": float(level),
+                "percentage": float(
+                    config.PARTIAL_TP_PERCENTAGES[index]
+                ),
+                "exit_price": partial_price,
+                "lot_size": close_lot,
+                "profit": partial_profit,
+                "exit_time": timestamp,
+            }
+
+            trade["partial_exits"].append(
+                partial_exit
+            )
+
+            return {
+                "level": level,
+                "exit_price": partial_price,
+                "close_lot": close_lot,
+                "profit": partial_profit,
+            }
+
         return None
-
-    initial_risk = abs(
-        trade["entry_price"]
-        - trade["initial_stop_loss"]
-    )
-
-    for index, level in enumerate(config.PARTIAL_TP_LEVELS):
-
-        if index >= len(config.PARTIAL_TP_PERCENTAGES):
-            continue
-
-        if index >= len(trade["partial_tp_hits"]):
-            continue
-
-        if trade["partial_tp_hits"][index]:
-            continue
-
-        if trade["lot_size"] <= 0:
-            continue
-
-        if initial_risk <= 0:
-            continue
-
-        signal = trade["signal"]
-
-        if signal == "BUY":
-
-            partial_price = (
-                trade["entry_price"]
-                + initial_risk * level
-            )
-
-            partial_hit = high >= partial_price
-
-        else:
-
-            partial_price = (
-                trade["entry_price"]
-                - initial_risk * level
-            )
-
-            partial_hit = low <= partial_price
-
-        if not partial_hit:
-            continue
-
-        close_lot = (
-            trade["initial_lot_size"]
-            * (
-                config.PARTIAL_TP_PERCENTAGES[index]
-                / 100
-            )
-        )
-
-        close_lot = min(
-            close_lot,
-            trade["lot_size"],
-        )
-
-        if close_lot <= 0:
-            continue
-
-        if signal == "BUY":
-
-            partial_profit = (
-                partial_price
-                - trade["entry_price"]
-            ) * close_lot
-
-        else:
-
-            partial_profit = (
-                trade["entry_price"]
-                - partial_price
-            ) * close_lot
-
-        trade["lot_size"] -= close_lot
-
-        if trade["lot_size"] < 0:
-            trade["lot_size"] = 0.0
-
-        trade["remaining_lot_size"] = trade["lot_size"]
-
-        trade["partial_tp_hits"][index] = True
-
-        trade["partial_profit"] += partial_profit
-
-        trade["profit"] += partial_profit
-
-        partial_exit = {
-            "level": float(level),
-            "percentage": float(
-                config.PARTIAL_TP_PERCENTAGES[index]
-            ),
-            "exit_price": partial_price,
-            "lot_size": close_lot,
-            "profit": partial_profit,
-            "exit_time": timestamp,
-        }
-
-        trade["partial_exits"].append(
-            partial_exit
-        )
-
-        return {
-            "level": level,
-            "exit_price": partial_price,
-            "close_lot": close_lot,
-            "profit": partial_profit,
-        }
-
-    return None
 
     # -------------------------------------------------
 
-def check_time_exit(
-    self,
-    trade,
-    close,
-):
+    def check_time_exit(
+        self,
+        trade,
+        close,
+    ):
 
-    if not config.ENABLE_TIME_EXIT:
-        return None
+        if not config.ENABLE_TIME_EXIT:
+            return None
 
-    if not trade["time_exit_enabled"]:
-        return None
+        if not trade["time_exit_enabled"]:
+            return None
 
-    if trade["break_even_activated"]:
-        return None
+        if trade["break_even_activated"]:
+            return None
 
-    if trade["trailing_stop_activated"]:
-        return None
+        if trade["trailing_stop_activated"]:
+            return None
 
-    if trade["bars_in_trade"] < config.MAX_BARS_IN_TRADE:
-        return None
+        if trade["bars_in_trade"] < config.MAX_BARS_IN_TRADE:
+            return None
 
-    trade["exit_reason"] = "TIME_EXIT"
+        trade["exit_reason"] = "TIME_EXIT"
 
-    return float(close)
+        return float(close)
