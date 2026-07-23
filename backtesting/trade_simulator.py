@@ -349,6 +349,25 @@ class TradeSimulator:
             atr,
         )
 
+        time_exit_price = self.trade_management.check_time_exit(
+            trade_dict,
+            close,
+        )
+
+        self._update_trade_from_dict(
+            trade,
+            trade_dict,
+        )
+
+        if time_exit_price is not None:
+            self._close_trade(
+                trade,
+                time_exit_price,
+                "TIME_EXIT",
+                current_time,
+            )
+            return
+
         self._update_trade_from_dict(
             trade,
             trade_dict,
