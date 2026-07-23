@@ -1,6 +1,6 @@
 from core.mt5_connector import connect, disconnect, get_candles
 from indicators import calculate_indicators
-from strategy import check_signal
+from legacy_strategy import check_signal
 
 from config import (
     TIMEFRAME,

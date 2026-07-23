@@ -91,6 +91,24 @@ class SimulatedTrade:
 
     lowest_price: Optional[float] = None
 
+    initial_lot_size: float = 0.0
+
+remaining_lot_size: float = 0.0
+
+partial_tp_hits: list = None
+
+partial_exits: list = None
+
+partial_profit: float = 0.0
+
+bars_in_trade: int = 0
+
+entry_bar: int = 0
+
+time_exit_enabled: bool = False
+
+exit_reason: Optional[str] = None
+
 
 # =========================================================
 # Trade Simulator
