@@ -192,7 +192,45 @@ class PaperTradeExecutor:
             )
 
         # 3. Partial Profit
-        self._update_partial_profit(trade, high, low, timestamp, signal)
+        result = self.trade_management.update_partial_profit(
+            trade,
+            high,
+            low,
+            timestamp,
+        )
+
+        if result:
+
+            self.balance += result["profit"]
+
+            print()
+
+            print("Partial profit taken")
+
+            print(
+                f"Level       : "
+                f"{result['level']:.2f}R"
+            )
+
+            print(
+                f"Exit Price  : "
+                f"{result['exit_price']:.2f}"
+            )
+
+            print(
+                f"Closed Lot  : "
+                f"{result['close_lot']:.2f}"
+            )
+
+            print(
+                f"Remaining   : "
+                f"{trade['lot_size']:.2f}"
+            )
+
+            print(
+                f"Profit      : "
+                f"{result['profit']:.2f}"
+            )
 
         # 4. Normal Exit
 
@@ -225,150 +263,6 @@ class PaperTradeExecutor:
     # -------------------------------------------------
     
     # -------------------------------------------------
-
-    def _update_partial_profit(self, trade, high, low, timestamp, signal):
-
-        #
-        # Partial Profit Taking
-        #
-
-        if config.ENABLE_PARTIAL_TP:
-
-            initial_risk = abs(
-                trade["entry_price"]
-                - trade["initial_stop_loss"]
-            )
-
-            for index, level in enumerate(config.PARTIAL_TP_LEVELS):
-
-                if index >= len(config.PARTIAL_TP_PERCENTAGES):
-                    continue
-
-                if index >= len(trade["partial_tp_hits"]):
-                    continue
-
-                if trade["partial_tp_hits"][index]:
-                    continue
-
-                if trade["lot_size"] <= 0:
-                    continue
-
-                if initial_risk <= 0:
-                    continue
-
-                if signal == "BUY":
-
-                    partial_price = (
-                        trade["entry_price"]
-                        + (
-                            initial_risk
-                            * level
-                        )
-                    )
-
-                    partial_hit = high >= partial_price
-
-                else:
-
-                    partial_price = (
-                        trade["entry_price"]
-                        - (
-                            initial_risk
-                            * level
-                        )
-                    )
-
-                    partial_hit = low <= partial_price
-
-                if not partial_hit:
-                    continue
-
-                close_lot = (
-                    trade["initial_lot_size"]
-                    * (
-                        config.PARTIAL_TP_PERCENTAGES[index]
-                        / 100
-                    )
-                )
-
-                close_lot = min(
-                    close_lot,
-                    trade["lot_size"],
-                )
-
-                if close_lot <= 0:
-                    continue
-
-                if signal == "BUY":
-
-                    partial_profit = (
-                        partial_price
-                        - trade["entry_price"]
-                    ) * close_lot
-
-                else:
-
-                    partial_profit = (
-                        trade["entry_price"]
-                        - partial_price
-                    ) * close_lot
-
-                trade["lot_size"] -= close_lot
-
-                if trade["lot_size"] < 0:
-                    trade["lot_size"] = 0.0
-
-                trade["remaining_lot_size"] = trade["lot_size"]
-
-                trade["partial_tp_hits"][index] = True
-
-                trade["partial_profit"] += partial_profit
-
-                trade["profit"] += partial_profit
-
-                self.balance += partial_profit
-
-                trade["partial_exits"].append(
-                    {
-                        "level": float(level),
-                        "percentage": float(
-                            config.PARTIAL_TP_PERCENTAGES[index]
-                        ),
-                        "exit_price": partial_price,
-                        "lot_size": close_lot,
-                        "profit": partial_profit,
-                        "exit_time": timestamp,
-                    }
-                )
-
-                print()
-
-                print("Partial profit taken")
-
-                print(
-                    f"Level       : "
-                    f"{level:.2f}R"
-                )
-
-                print(
-                    f"Exit Price  : "
-                    f"{partial_price:.2f}"
-                )
-
-                print(
-                    f"Closed Lot  : "
-                    f"{close_lot:.2f}"
-                )
-
-                print(
-                    f"Remaining   : "
-                    f"{trade['lot_size']:.2f}"
-                )
-
-                print(
-                    f"Profit      : "
-                    f"{partial_profit:.2f}"
-                )
 
     # -------------------------------------------------
 
