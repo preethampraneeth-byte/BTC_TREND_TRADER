@@ -394,6 +394,7 @@ class TradeSimulator:
         trade.exit_time = exit_time
         trade.result = result
         trade.status = TradeStatus.CLOSED
+        trade.exit_reason = result
 
         if trade.direction.upper() == "BUY":
             points = exit_price - trade.entry_price
@@ -401,6 +402,8 @@ class TradeSimulator:
             points = trade.entry_price - exit_price
 
         trade.profit = points * trade.lot_size
+
+        trade.remaining_lot_size = 0.0
 
         self.balance += trade.profit
 
