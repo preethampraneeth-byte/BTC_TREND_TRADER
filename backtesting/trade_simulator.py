@@ -17,7 +17,8 @@ Responsibilities
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
-
+from core.risk_manager import RiskManager
+from core.trade_management_service import TradeManagementService
 
 # =========================================================
 # Trade Status
@@ -127,6 +128,12 @@ class TradeSimulator:
         self.current_trade: Optional[SimulatedTrade] = None
 
         self.trade_history = []
+
+        self.risk_manager = RiskManager()
+
+        self.trade_management = TradeManagementService(
+            self.risk_manager
+        )
 
     # -----------------------------------------------------
 
