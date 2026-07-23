@@ -2,7 +2,6 @@
 Configuration Manager
 
 Provides centralized access to application configuration.
-Initially, this is a thin wrapper around config.py.
 """
 
 from __future__ import annotations
@@ -17,10 +16,15 @@ class ConfigurationManager:
 
     def get(self, name):
         """
-        Return the value of a configuration setting.
+        Return a configuration value.
 
         Raises:
-            AttributeError:
-                If the configuration value does not exist.
+            AttributeError if the setting does not exist.
         """
         return getattr(config, name)
+
+    def has(self, name):
+        """
+        Return True if a configuration value exists.
+        """
+        return hasattr(config, name)

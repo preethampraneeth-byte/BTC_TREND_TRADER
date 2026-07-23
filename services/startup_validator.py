@@ -9,8 +9,12 @@ from __future__ import annotations
 
 import config
 
+from services.configuration_manager import ConfigurationManager
 
 class StartupValidator:
+
+    def __init__(self):
+        self.config = ConfigurationManager()
     """
     Validates application startup requirements.
     """
@@ -36,7 +40,7 @@ class StartupValidator:
     def _validate_backtest_balance(self):
         """Ensure the backtest starting balance is valid."""
 
-        if config.INITIAL_BALANCE <= 0:
+        if self.config.get("INITIAL_BALANCE") <= 0:
             raise ValueError(
                 "INITIAL_BALANCE must be greater than 0."
             )
@@ -46,7 +50,7 @@ class StartupValidator:
     def _validate_paper_balance(self):
         """Ensure the paper trading starting balance is valid."""
 
-        if config.PAPER_STARTING_BALANCE <= 0:
+        if self.config.get("PAPER_STARTING_BALANCE") <= 0:
             raise ValueError(
                 "PAPER_STARTING_BALANCE must be greater than 0."
             )
