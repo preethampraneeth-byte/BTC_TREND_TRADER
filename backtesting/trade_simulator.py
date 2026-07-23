@@ -93,21 +93,21 @@ class SimulatedTrade:
 
     initial_lot_size: float = 0.0
 
-remaining_lot_size: float = 0.0
+    remaining_lot_size: float = 0.0
 
-partial_tp_hits: list = None
+    partial_tp_hits: list = None
 
-partial_exits: list = None
+    partial_exits: list = None
 
-partial_profit: float = 0.0
+    partial_profit: float = 0.0
 
-bars_in_trade: int = 0
+    bars_in_trade: int = 0
 
-entry_bar: int = 0
+    entry_bar: int = 0
 
-time_exit_enabled: bool = False
+    time_exit_enabled: bool = False
 
-exit_reason: Optional[str] = None
+    exit_reason: Optional[str] = None
 
 
 # =========================================================
@@ -196,7 +196,25 @@ class TradeSimulator:
             highest_price=entry_price,
 
             lowest_price=entry_price,
-        )
+
+            initial_lot_size=order.lot_size,
+
+            remaining_lot_size=order.lot_size,
+
+            partial_tp_hits=[],
+
+            partial_exits=[],
+
+            partial_profit=0.0,
+
+            bars_in_trade=0,
+
+            entry_bar=0,
+
+            time_exit_enabled=False,
+
+            exit_reason=None,
+            )
 
         self.pending_trade = None
 
@@ -231,7 +249,25 @@ class TradeSimulator:
             highest_price=entry_price,
 
             lowest_price=entry_price,
-        )
+
+            initial_lot_size=lot_size,
+
+            remaining_lot_size=lot_size,
+
+            partial_tp_hits=[],
+
+            partial_exits=[],
+
+            partial_profit=0.0,
+
+            bars_in_trade=0,
+
+            entry_bar=0,
+
+            time_exit_enabled=False,
+
+            exit_reason=None,
+            )
 
         return True
 
