@@ -332,6 +332,12 @@ class TradeSimulator:
 
         trade_dict = self._trade_to_dict(trade)
 
+        self.trade_management.update_break_even(
+            trade_dict,
+            high,
+            low,
+        )
+
         self._update_trade_from_dict(
             trade,
             trade_dict,
