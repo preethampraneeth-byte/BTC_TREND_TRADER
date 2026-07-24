@@ -19,12 +19,20 @@ class ConfigurationManager:
         Return a configuration value.
 
         Raises:
-            AttributeError if the setting does not exist.
+            AttributeError:
+                If the configuration setting does not exist.
         """
+
+        if not hasattr(config, name):
+            raise AttributeError(
+                f"Unknown configuration setting: '{name}'"
+            )
+
         return getattr(config, name)
 
     def has(self, name):
         """
         Return True if a configuration value exists.
         """
+
         return hasattr(config, name)
