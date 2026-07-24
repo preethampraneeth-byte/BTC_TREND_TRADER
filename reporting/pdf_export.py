@@ -39,8 +39,8 @@ class ReportBuilder:
     def build(
         self,
         trades,
-        starting_balance,
-        ending_balance,
+        starting_balance: float,
+        ending_balance: float,
         equity_curve,
     ):
         """
@@ -70,10 +70,38 @@ class ReportBuilder:
             trades
         )
 
-        return {
-            "performance": performance,
-            "risk": risk,
-            "duration": duration,
-            "monthly": monthly,
-            "exit_analysis": exit_analysis,
+        report = {
+
+            "metadata": {
+
+                "starting_balance": round(
+                    starting_balance,
+                    2,
+                ),
+
+                "ending_balance": round(
+                    ending_balance,
+                    2,
+                ),
+
+                "trade_count": len(trades),
+
+            },
+
+            "analytics": {
+
+                "performance": performance,
+
+                "risk": risk,
+
+                "duration": duration,
+
+                "monthly": monthly,
+
+                "exit_analysis": exit_analysis,
+
+            },
+
         }
+
+        return report
