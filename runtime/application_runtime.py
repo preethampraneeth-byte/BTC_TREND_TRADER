@@ -8,8 +8,6 @@ from __future__ import annotations
 from runtime.backtest_runtime import BacktestRuntime
 from services.live_trading_service import LiveTradingService
 from services.startup_validator import StartupValidator
-from services.configuration_manager import ConfigurationManager
-from services.trade_audit_service import TradeAuditService
 
 
 class ApplicationRuntime:
@@ -29,10 +27,6 @@ class ApplicationRuntime:
         self.live = LiveTradingService()
 
         self.startup_validator = StartupValidator()
-
-        self.configuration_manager = ConfigurationManager()
-
-        self.trade_audit = TradeAuditService()
 
     # -------------------------------------------------
 
