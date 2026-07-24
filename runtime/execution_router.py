@@ -5,7 +5,7 @@ Execution Router
 
 from __future__ import annotations
 
-from services.configuration_manager import ConfigurationManager
+import config
 
 from runtime.backtest_runtime import BacktestRuntime
 from runtime.paper_runtime import PaperRuntime
@@ -22,8 +22,6 @@ class ExecutionRouter:
 
         self._runtime = None
 
-        self.config = ConfigurationManager()
-
     # ---------------------------------------------------------
 
     def runtime(self):
@@ -31,7 +29,7 @@ class ExecutionRouter:
         if self._runtime is not None:
             return self._runtime
 
-        mode = self.config.get("EXECUTION_MODE").upper()
+        mode = config.EXECUTION_MODE.upper()
 
         if mode == "BACKTEST":
 
