@@ -135,6 +135,8 @@ class TradeSimulator:
             self.risk_manager
         )
 
+        self.trade_audit = None
+
     # -----------------------------------------------------
 
     def has_pending_trade(self):
