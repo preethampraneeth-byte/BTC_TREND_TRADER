@@ -5,7 +5,7 @@ Diagnostics Service
 
 from __future__ import annotations
 
-from services.configuration_manager import ConfigurationManager
+import config
 
 
 class DiagnosticsService:
@@ -14,19 +14,18 @@ class DiagnosticsService:
     """
 
     def __init__(self) -> None:
-
-        self.config = ConfigurationManager()
+        pass
 
     # -------------------------------------------------
 
     def generate(self, candles):
 
         ema_fast = candles[
-            f"EMA_{self.config.get('EMA_FAST')}"
+            f"EMA_{config.EMA_FAST}"
         ]
 
         ema_slow = candles[
-            f"EMA_{self.config.get('EMA_SLOW')}"
+            f"EMA_{config.EMA_SLOW}"
         ]
 
         ema_distance = (ema_fast - ema_slow).abs()
@@ -34,24 +33,22 @@ class DiagnosticsService:
         strong_trend = (
             ema_distance
             >= candles["ATR"]
-            * self.config.get(
-                "EMA_DISTANCE_ATR_MULTIPLIER"
-            )
+            * config.EMA_DISTANCE_ATR_MULTIPLIER
         )
 
         adx_ok = (
             candles["ADX"]
-            > self.config.get("ADX_THRESHOLD")
+            > config.ADX_THRESHOLD
         )
 
         rsi_buy = (
             candles["RSI"]
-            <= self.config.get("RSI_BUY_LEVEL")
+            <= config.RSI_BUY_LEVEL
         )
 
         rsi_sell = (
             candles["RSI"]
-            >= self.config.get("RSI_SELL_LEVEL")
+            >= config.RSI_SELL_LEVEL
         )
 
         buy_step1 = ema_fast > ema_slow
