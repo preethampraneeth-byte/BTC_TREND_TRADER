@@ -5,9 +5,8 @@ Backtest Service
 
 from __future__ import annotations
 
-import config
-
 from backtesting.backtester import Backtester
+from services.configuration_manager import ConfigurationManager
 
 
 class BacktestService:
@@ -21,8 +20,10 @@ class BacktestService:
 
     def __init__(self) -> None:
 
+        self.config = ConfigurationManager()
+
         self.backtester = Backtester(
-            starting_balance=config.INITIAL_BALANCE
+            starting_balance=self.config.get("INITIAL_BALANCE")
         )
 
     # -------------------------------------------------
@@ -40,5 +41,5 @@ class BacktestService:
             "summary": summary,
             "statistics": simulation["statistics"],
             "trades": simulation["trades"],
-            "starting_balance": config.INITIAL_BALANCE,
+            "starting_balance": self.config.get("INITIAL_BALANCE"),
         }
