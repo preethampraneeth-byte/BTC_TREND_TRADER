@@ -1,74 +1,223 @@
 """
-BTC Trend Trader Professional v4
-Monthly Performance Analytics
+BTC Trend Trader v2.5
+Performance Report
+
+Calculates performance metrics from completed
+simulated trades.
 """
 
 from __future__ import annotations
 
-from collections import defaultdict
-from typing import Any, Dict, List
+from analytics.monthly_performance import MonthlyPerformance
 
 
-class MonthlyPerformance:
-    """
-    Calculates monthly trading performance.
-    """
+class PerformanceReport:
 
-    def calculate(
+    def generate(
         self,
-        trades: List[Any],
-    ) -> Dict[str, Dict[str, float]]:
+        trades,
+        starting_balance: float,
+        ending_balance: float,
+        equity_curve=None,
+    ):
 
-        monthly = defaultdict(
-            lambda: {
-                "trades": 0,
-                "wins": 0,
-                "losses": 0,
-                "net_profit": 0.0,
+        if equity_curve is None:
+            equity_curve = [starting_balance, ending_balance]
+
+        total_trades = len(trades)
+
+        monthly_performance = MonthlyPerformance().calculate(trades)
+
+        if total_trades == 0:
+            return {
+                "Starting Balance": starting_balance,
+                "Ending Balance": ending_balance,
+                "Net Profit": 0.0,
+                "Return (%)": 0.0,
+                "Maximum Drawdown (%)": 0.0,
+                "Recovery Factor": 0.0,
+                "Expectancy": 0.0,
+                "Total Trades": 0,
+                "Winning Trades": 0,
+                "Losing Trades": 0,
+                "Win Rate (%)": 0.0,
+                "Gross Profit": 0.0,
+                "Gross Loss": 0.0,
+                "Profit Factor": 0.0,
+                "Average Win": 0.0,
+                "Average Loss": 0.0,
+                "Largest Win": 0.0,
+                "Largest Loss": 0.0,
+                "Monthly Performance": {},
             }
+
+        # -------------------------------------------------
+        # Trade Statistics
+        # -------------------------------------------------
+
+        profits = [t.profit for t in trades if t.profit > 0]
+        losses = [t.profit for t in trades if t.profit < 0]
+
+        gross_profit = sum(profits)
+        gross_loss = abs(sum(losses))
+
+        winning_trades = len(profits)
+        losing_trades = len(losses)
+
+        win_rate = (winning_trades / total_trades) * 100
+
+        average_win = (
+            gross_profit / winning_trades
+            if winning_trades > 0
+            else 0.0
         )
 
-        for trade in trades:
+        average_loss = (
+            gross_loss / losing_trades
+            if losing_trades > 0
+            else 0.0
+        )
 
-            exit_time = getattr(trade, "exit_time", None)
+        largest_win = max(profits) if profits else 0.0
+        largest_loss = min(losses) if losses else 0.0
 
-            if exit_time is None:
-                continue
-
-            month = exit_time.strftime("%Y-%m")
-
-            profit = float(getattr(trade, "profit", 0.0))
-
-            stats = monthly[month]
-
-            stats["trades"] += 1
-            stats["net_profit"] += profit
-
-            if profit > 0:
-                stats["wins"] += 1
-            elif profit < 0:
-                stats["losses"] += 1
-
-        results = {}
-
-        for month in sorted(monthly):
-
-            stats = monthly[month]
-
-            trades_count = stats["trades"]
-
-            win_rate = (
-                stats["wins"] / trades_count * 100
-                if trades_count
+        if gross_loss == 0:
+            profit_factor = (
+                float("inf")
+                if gross_profit > 0
                 else 0.0
             )
+        else:
+            profit_factor = gross_profit / gross_loss
 
-            results[month] = {
-                "trades": trades_count,
-                "wins": stats["wins"],
-                "losses": stats["losses"],
-                "win_rate": round(win_rate, 2),
-                "net_profit": round(stats["net_profit"], 2),
-            }
+        # -------------------------------------------------
+        # Return
+        # -------------------------------------------------
 
-        return results
+        net_profit = ending_balance - starting_balance
+
+        return_percent = (
+            (net_profit / starting_balance) * 100
+            if starting_balance != 0
+            else 0.0
+        )
+
+        # -------------------------------------------------
+        # Maximum Drawdown
+        # -------------------------------------------------
+
+        peak = equity_curve[0]
+        max_drawdown = 0.0
+
+        for equity in equity_curve:
+
+            if equity > peak:
+                peak = equity
+
+            drawdown = (peak - equity) / peak
+
+            if drawdown > max_drawdown:
+                max_drawdown = drawdown
+
+        max_drawdown_percent = max_drawdown * 100
+
+        # -------------------------------------------------
+        # Recovery Factor
+        # -------------------------------------------------
+
+        if max_drawdown > 0:
+            recovery_factor = (
+                net_profit /
+                (max_drawdown * starting_balance)
+            )
+        else:
+            recovery_factor = 0.0
+
+        # -------------------------------------------------
+        # Expectancy
+        # -------------------------------------------------
+
+        expectancy = (
+            net_profit / total_trades
+            if total_trades > 0
+            else 0.0
+        )
+
+        # -------------------------------------------------
+        # Final Report
+        # -------------------------------------------------
+
+        return {
+
+            "Starting Balance": round(starting_balance, 2),
+
+            "Ending Balance": round(ending_balance, 2),
+
+            "Net Profit": round(net_profit, 2),
+
+            "Return (%)": round(return_percent, 2),
+
+            "Maximum Drawdown (%)": round(
+                max_drawdown_percent,
+                2,
+            ),
+
+            "Recovery Factor": round(
+                recovery_factor,
+                2,
+            ),
+
+            "Expectancy": round(
+                expectancy,
+                2,
+            ),
+
+            "Total Trades": total_trades,
+
+            "Winning Trades": winning_trades,
+
+            "Losing Trades": losing_trades,
+
+            "Win Rate (%)": round(
+                win_rate,
+                2,
+            ),
+
+            "Gross Profit": round(
+                gross_profit,
+                2,
+            ),
+
+            "Gross Loss": round(
+                gross_loss,
+                2,
+            ),
+
+            "Profit Factor": (
+                round(profit_factor, 2)
+                if profit_factor != float("inf")
+                else "Infinity"
+            ),
+
+            "Average Win": round(
+                average_win,
+                2,
+            ),
+
+            "Average Loss": round(
+                average_loss,
+                2,
+            ),
+
+            "Largest Win": round(
+                largest_win,
+                2,
+            ),
+
+            "Largest Loss": round(
+                largest_loss,
+                2,
+            ),
+
+            "Monthly Performance": monthly_performance,
+        }
