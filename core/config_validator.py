@@ -7,7 +7,7 @@ Sprint 11.2.1
 
 from __future__ import annotations
 
-import config
+from services.configuration_manager import ConfigurationManager
 
 
 SUPPORTED_TIMEFRAMES = {
@@ -31,11 +31,13 @@ def validate() -> None:
         If any configuration value is invalid.
     """
 
+    config = ConfigurationManager()
+
     # -------------------------------------------------
     # Symbol
     # -------------------------------------------------
 
-    if not config.SYMBOL.strip():
+    if not config.get("SYMBOL").strip():
 
         raise ValueError(
             "SYMBOL cannot be empty."
@@ -45,10 +47,12 @@ def validate() -> None:
     # Timeframe
     # -------------------------------------------------
 
-    if config.TIMEFRAME.upper() not in SUPPORTED_TIMEFRAMES:
+    timeframe = config.get("TIMEFRAME")
+
+    if timeframe.upper() not in SUPPORTED_TIMEFRAMES:
 
         raise ValueError(
-            f"Unsupported timeframe: {config.TIMEFRAME}"
+            f"Unsupported timeframe: {timeframe}"
         )
 
     # -------------------------------------------------
@@ -65,7 +69,7 @@ def validate() -> None:
     # 0.005 = 0.5%
     #
 
-    if not (0 < config.RISK_PER_TRADE <= 1):
+    if not (0 < config.get("RISK_PER_TRADE") <= 1):
 
         raise ValueError(
             "RISK_PER_TRADE must be between 0 and 1."
@@ -75,13 +79,13 @@ def validate() -> None:
     # Balances
     # -------------------------------------------------
 
-    if config.INITIAL_BALANCE <= 0:
+    if config.get("INITIAL_BALANCE") <= 0:
 
         raise ValueError(
             "INITIAL_BALANCE must be positive."
         )
 
-    if config.PAPER_STARTING_BALANCE <= 0:
+    if config.get("PAPER_STARTING_BALANCE") <= 0:
 
         raise ValueError(
             "PAPER_STARTING_BALANCE must be positive."
@@ -91,7 +95,7 @@ def validate() -> None:
     # Magic Number
     # -------------------------------------------------
 
-    if config.MAGIC_NUMBER <= 0:
+    if config.get("MAGIC_NUMBER") <= 0:
 
         raise ValueError(
             "MAGIC_NUMBER must be positive."
@@ -101,7 +105,7 @@ def validate() -> None:
     # Time Exit
     # -------------------------------------------------
 
-    if config.MAX_BARS_IN_TRADE <= 0:
+    if config.get("MAX_BARS_IN_TRADE") <= 0:
 
         raise ValueError(
             "MAX_BARS_IN_TRADE must be greater than zero."
@@ -111,9 +115,10 @@ def validate() -> None:
     # Partial Profit Validation
     # -------------------------------------------------
 
-    if len(config.PARTIAL_TP_LEVELS) != len(
-        config.PARTIAL_TP_PERCENTAGES
-    ):
+    partial_tp_levels = config.get("PARTIAL_TP_LEVELS")
+    partial_tp_percentages = config.get("PARTIAL_TP_PERCENTAGES")
+
+    if len(partial_tp_levels) != len(partial_tp_percentages):
 
         raise ValueError(
             "PARTIAL_TP_LEVELS and "
@@ -121,7 +126,7 @@ def validate() -> None:
             "the same length."
         )
 
-    if sum(config.PARTIAL_TP_PERCENTAGES) != 100:
+    if sum(partial_tp_percentages) != 100:
 
         raise ValueError(
             "PARTIAL_TP_PERCENTAGES must total 100."
