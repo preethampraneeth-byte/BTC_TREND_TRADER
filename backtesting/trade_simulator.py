@@ -139,6 +139,15 @@ class TradeSimulator:
 
     # -----------------------------------------------------
 
+    def set_trade_audit(self, trade_audit):
+        """
+        Inject the trade audit service.
+        """
+
+        self.trade_audit = trade_audit    
+
+    # -----------------------------------------------------
+
     def has_pending_trade(self):
 
         return self.pending_trade is not None
