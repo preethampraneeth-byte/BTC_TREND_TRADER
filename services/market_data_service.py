@@ -5,7 +5,7 @@ Market Data Service
 
 from __future__ import annotations
 
-import config
+from services.configuration_manager import ConfigurationManager
 
 from core.market_data import MarketData
 from core.mt5_connector import MT5Connector
@@ -26,18 +26,20 @@ class MarketDataService:
 
         self.connector: MT5Connector | None = None
 
+        self.config = ConfigurationManager()
+
     # -------------------------------------------------
 
     def load(self):
 
         market = MarketData()
 
-        if config.USE_CSV_DATA:
+        if self.config.get("USE_CSV_DATA"):
 
             print("Loading historical data from CSV...")
 
             return market.load_from_csv(
-                config.CSV_DATA_FILE
+                self.config.get("CSV_DATA_FILE")
             )
 
         self.connector = MT5Connector()
@@ -45,16 +47,18 @@ class MarketDataService:
         if not self.connector.connect():
             raise RuntimeError("Failed to connect to MT5.")
 
-        if not self.connector.symbol_info(config.SYMBOL):
+        if not self.connector.symbol_info(
+            self.config.get("SYMBOL")
+        ):
             raise RuntimeError(
-                f"Unable to access symbol '{config.SYMBOL}'."
+                f"Unable to access symbol '{self.config.get('SYMBOL')}'."
             )
 
         print("Downloading historical data from MT5...")
 
         return market.get_candles(
-            symbol=config.SYMBOL,
-            timeframe=config.TIMEFRAME,
+            symbol=self.config.get("SYMBOL"),
+            timeframe=self.config.get("TIMEFRAME"),
             bars=500,
         )
 
