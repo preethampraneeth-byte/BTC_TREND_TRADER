@@ -7,6 +7,10 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class DashboardController:
     """Read-only integration layer between the trading engine and dashboard."""
