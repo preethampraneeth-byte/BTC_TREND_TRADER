@@ -115,30 +115,34 @@ class BacktestRuntime:
 
     def run(self):
 
-        candles = self.load_market_data()
+        try:
 
-        candles = self.prepare_market(candles)
+            candles = self.load_market_data()
 
-        diagnostics = self.build_diagnostics(candles)
+            candles = self.prepare_market(candles)
 
-        results = self.run_backtest(candles)
+            diagnostics = self.build_diagnostics(candles)
 
-        performance = self.generate_performance_report(
-            results["trades"],
-            results["statistics"],
-        )
+            results = self.run_backtest(candles)
 
-        analytics = self.generate_analytics(
-            results["trades"],
-            results["starting_balance"],
-        )
+            performance = self.generate_performance_report(
+                results["trades"],
+                results["statistics"],
+            )
 
-        self.show_dashboard(
-            summary=results["summary"],
-            performance=performance,
-            trades=results["trades"],
-            diagnostics=diagnostics,
-            analytics=analytics,
-        )
+            analytics = self.generate_analytics(
+                results["trades"],
+                results["starting_balance"],
+            )
 
-        self.shutdown()
+            self.show_dashboard(
+                summary=results["summary"],
+                performance=performance,
+                trades=results["trades"],
+                diagnostics=diagnostics,
+                analytics=analytics,
+            )
+
+        finally:
+
+            self.shutdown()

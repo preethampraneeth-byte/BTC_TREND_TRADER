@@ -69,8 +69,8 @@ class DashboardController:
             if backend and hasattr(backend, "get_account"):
                 data = backend.get_account()
                 self._account = data if isinstance(data, dict) else {}
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Dashboard refresh failed", exc_info=e)
 
     def _refresh_positions(self) -> None:
         try:
