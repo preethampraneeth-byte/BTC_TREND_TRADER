@@ -30,7 +30,9 @@ def main() -> None:
     • Exit cleanly
     """
 
-    mode = "backtest"
+    import config
+
+    mode = config.EXECUTION_MODE.lower()
 
     if len(sys.argv) > 1:
         mode = sys.argv[1].lower()

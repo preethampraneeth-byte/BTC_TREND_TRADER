@@ -85,7 +85,7 @@ class LiveRuntime:
 
         now = time.time()
 
-        if now - self.last_heartbeat < 60:
+        if now - self.last_heartbeat < config.HEARTBEAT_INTERVAL_SECONDS:
 
             return
 
