@@ -718,6 +718,8 @@ class PaperTradeExecutor:
         if not config.LOG_TO_CSV:
             return
 
+        print(f"[CSV] Writing trade to {config.TRADE_LOG}")
+
         file_exists = os.path.exists(config.TRADE_LOG)
 
         expected_header = [

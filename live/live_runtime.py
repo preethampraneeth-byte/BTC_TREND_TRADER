@@ -162,18 +162,31 @@ class LiveRuntime:
 
         candle_time = latest["Time"]
 
-        #
-        # Skip already processed candle
-        #
-
         if candle_time == self.last_processed_candle:
-
             return
 
         self.last_processed_candle = candle_time
 
-        print()
+        ema_distance = abs(
+            latest[f"EMA_{config.EMA_FAST}"] -
+            latest[f"EMA_{config.EMA_SLOW}"]
+        )
 
+        strong_trend = (
+            ema_distance >=
+            latest["ATR"] * config.EMA_DISTANCE_ATR_MULTIPLIER
+        )
+
+        print(
+            f"Signal={latest['Signal']} | "
+            f"Fast>Slow={latest[f'EMA_{config.EMA_FAST}'] > latest[f'EMA_{config.EMA_SLOW}']} | "
+            f"StrongTrend={strong_trend} | "
+            f"ADX_OK={latest['ADX'] > config.ADX_THRESHOLD} | "
+            f"BUY_RSI_OK={latest['RSI'] <= config.RSI_BUY_LEVEL} | "
+            f"SELL_RSI_OK={latest['RSI'] >= config.RSI_SELL_LEVEL}"
+        )
+
+        print()
         print(f"New Candle : {candle_time}")
 
         #
@@ -181,7 +194,7 @@ class LiveRuntime:
         # Update Existing Position
         # -------------------------------------------------
         #
-
+        
         closed_trade = self.executor.update(
 
             high=float(latest["High"]),
