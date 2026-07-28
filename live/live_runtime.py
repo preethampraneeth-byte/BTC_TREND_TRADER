@@ -179,11 +179,11 @@ class LiveRuntime:
 
         print(
             f"Signal={latest['Signal']} | "
-            f"Fast>Slow={latest[f'EMA_{config.EMA_FAST}'] > latest[f'EMA_{config.EMA_SLOW}']} | "
-            f"StrongTrend={strong_trend} | "
-            f"ADX_OK={latest['ADX'] > config.ADX_THRESHOLD} | "
-            f"BUY_RSI_OK={latest['RSI'] <= config.RSI_BUY_LEVEL} | "
-            f"SELL_RSI_OK={latest['RSI'] >= config.RSI_SELL_LEVEL}"
+            f"EMA{config.EMA_FAST}={latest[f'EMA_{config.EMA_FAST}']:.2f} | "
+            f"EMA{config.EMA_SLOW}={latest[f'EMA_{config.EMA_SLOW}']:.2f} | "
+            f"RSI={latest['RSI']:.2f} | "
+            f"ADX={latest['ADX']:.2f} | "
+            f"ATR={latest['ATR']:.2f}"
         )
 
         print()
