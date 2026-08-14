@@ -157,8 +157,13 @@ class LiveRuntime:
         h4_candles = self.market_feed.latest_h4()
 
         if h4_candles is None:
-            print("Waiting for H4 market data...")
+            print("[H4] No H4 market data returned.")
             return
+
+        print(
+            f"[H4] Retrieved {len(h4_candles)} candles | "
+            f"Latest: {h4_candles.iloc[-1]['Time']}"
+        )
 
         candles = self.strategy.generate_signals(
             candles,
@@ -187,6 +192,10 @@ class LiveRuntime:
         print(
             f"Signal={latest['Signal']} | "
             f"Reason={latest['Reason']} | "
+            f"H4 EMA50={latest['H4_EMA_50']:.2f} | "
+            f"H4 EMA200={latest['H4_EMA_200']:.2f} | "
+            f"H4 Bull={latest['H4_Bullish']} | "
+            f"H4 Bear={latest['H4_Bearish']} | "
             f"EMA{config.EMA_FAST}={latest[f'EMA_{config.EMA_FAST}']:.2f} | "
             f"EMA{config.EMA_SLOW}={latest[f'EMA_{config.EMA_SLOW}']:.2f} | "
             f"RSI={latest['RSI']:.2f} | "

@@ -32,15 +32,12 @@ class Strategy:
     - EMA Distance Filter
     - ADX
     - RSI
+    - H4 Trend Regime
 
     Also calculates:
 
     - Stop Loss
     - Take Profit
-
-    Step 1:
-    Adds detailed diagnostic information for rejected
-    entry conditions without changing signal behavior.
     """
 
     def generate_signals(
@@ -50,6 +47,70 @@ class Strategy:
     ) -> pd.DataFrame:
 
         data = df.copy()
+
+        # -------------------------------------------------
+        # H4 Trend Regime
+        # -------------------------------------------------
+
+        if h4_df is None or h4_df.empty:
+            raise ValueError(
+                "H4 market data is required for Strategy v5."
+            )
+
+        h4_data = h4_df.copy()
+
+        h4_data["H4_EMA_50"] = h4_data["Close"].ewm(
+            span=50,
+            adjust=False,
+        ).mean()
+
+        h4_data["H4_EMA_200"] = h4_data["Close"].ewm(
+            span=200,
+            adjust=False,
+        ).mean()
+
+        h4_data["H4_Bullish"] = (
+            h4_data["H4_EMA_50"]
+            > h4_data["H4_EMA_200"]
+        )
+
+        h4_data["H4_Bearish"] = (
+            h4_data["H4_EMA_50"]
+            < h4_data["H4_EMA_200"]
+        )
+
+        # Use the most recent completed H4 regime
+        # for each H1 candle.
+        h4_regime = h4_data[
+            [
+                "Time",
+                "H4_EMA_50",
+                "H4_EMA_200",
+                "H4_Bullish",
+                "H4_Bearish",
+            ]
+        ].copy()
+
+        data = pd.merge_asof(
+            data.sort_values("Time"),
+            h4_regime.sort_values("Time"),
+            on="Time",
+            direction="backward",
+        )
+
+        data["H4_Bullish"] = (
+            data["H4_Bullish"]
+            .fillna(False)
+        )
+
+        data["H4_Bearish"] = (
+            data["H4_Bearish"]
+            .fillna(False)
+        )
+
+        # -------------------------------------------------
+        # Signal Defaults
+        # -------------------------------------------------
 
         data["Signal"] = Signal.HOLD.name
         data["Reason"] = ""
@@ -95,6 +156,7 @@ class Strategy:
 
         buy = (
             bullish_ema
+            & data["H4_Bullish"]
             & strong_trend
             & (data["ADX"] > config.ADX_THRESHOLD)
             & (data["RSI"] <= config.RSI_BUY_LEVEL)
@@ -106,13 +168,14 @@ class Strategy:
 
         sell = (
             bearish_ema
+            & data["H4_Bearish"]
             & strong_trend
             & (data["ADX"] > config.ADX_THRESHOLD)
             & (data["RSI"] >= config.RSI_SELL_LEVEL)
         )
 
         # -------------------------------------------------
-        # BUY
+        # BUY Signal
         # -------------------------------------------------
 
         data.loc[buy, "Signal"] = Signal.BUY.name
@@ -139,7 +202,7 @@ class Strategy:
         )
 
         # -------------------------------------------------
-        # SELL
+        # SELL Signal
         # -------------------------------------------------
 
         data.loc[sell, "Signal"] = Signal.SELL.name
@@ -173,12 +236,14 @@ class Strategy:
 
         # Start with the most fundamental failure.
         data.loc[
-            hold & (~bullish_ema) & (~bearish_ema),
+            hold
+            & (~bullish_ema)
+            & (~bearish_ema),
             "Reason"
         ] = "EMA direction unavailable"
 
         # -------------------------------------------------
-        # Determine possible BUY/SELL direction
+        # Determine possible BUY / SELL direction
         # -------------------------------------------------
 
         bullish_candidate = (
@@ -198,9 +263,7 @@ class Strategy:
         data.loc[
             hold & (~strong_trend),
             "Reason"
-        ] = (
-            "EMA distance too small"
-        )
+        ] = "EMA distance too small"
 
         # -------------------------------------------------
         # ADX Failure
@@ -211,18 +274,14 @@ class Strategy:
             & strong_trend
             & (data["ADX"] <= config.ADX_THRESHOLD),
             "Reason"
-        ] = (
-            "BUY rejected: ADX below threshold"
-        )
+        ] = "BUY rejected: ADX below threshold"
 
         data.loc[
             bearish_candidate
             & strong_trend
             & (data["ADX"] <= config.ADX_THRESHOLD),
             "Reason"
-        ] = (
-            "SELL rejected: ADX below threshold"
-        )
+        ] = "SELL rejected: ADX below threshold"
 
         # -------------------------------------------------
         # RSI Failure
@@ -234,9 +293,7 @@ class Strategy:
             & (data["ADX"] > config.ADX_THRESHOLD)
             & (data["RSI"] > config.RSI_BUY_LEVEL),
             "Reason"
-        ] = (
-            "BUY rejected: RSI above buy level"
-        )
+        ] = "BUY rejected: RSI above buy level"
 
         data.loc[
             bearish_candidate
@@ -244,15 +301,35 @@ class Strategy:
             & (data["ADX"] > config.ADX_THRESHOLD)
             & (data["RSI"] < config.RSI_SELL_LEVEL),
             "Reason"
-        ] = (
-            "SELL rejected: RSI below sell level"
-        )
+        ] = "SELL rejected: RSI below sell level"
+
+        # -------------------------------------------------
+        # H4 Regime Rejection Diagnostics
+        #
+        # Keep this LAST so an H4 rejection is not
+        # overwritten by ADX or RSI diagnostics.
+        # -------------------------------------------------
+
+        data.loc[
+            hold
+            & bullish_ema
+            & (~data["H4_Bullish"]),
+            "Reason"
+        ] = "BUY rejected: H4 trend not bullish"
+
+        data.loc[
+            hold
+            & bearish_ema
+            & (~data["H4_Bearish"]),
+            "Reason"
+        ] = "SELL rejected: H4 trend not bearish"
 
         # -------------------------------------------------
         # Diagnostic Columns
         # -------------------------------------------------
 
         data["Diagnostic_EMA_Distance"] = ema_distance
+
         data["Diagnostic_Required_EMA_Distance"] = (
             required_ema_distance
         )
@@ -270,6 +347,22 @@ class Strategy:
 
         data["Diagnostic_RSI_Sell_Pass"] = (
             data["RSI"] >= config.RSI_SELL_LEVEL
+        )
+
+        data["Diagnostic_H4_EMA_50"] = (
+            data["H4_EMA_50"]
+        )
+
+        data["Diagnostic_H4_EMA_200"] = (
+            data["H4_EMA_200"]
+        )
+
+        data["Diagnostic_H4_Bullish"] = (
+            data["H4_Bullish"]
+        )
+
+        data["Diagnostic_H4_Bearish"] = (
+            data["H4_Bearish"]
         )
 
         return data
