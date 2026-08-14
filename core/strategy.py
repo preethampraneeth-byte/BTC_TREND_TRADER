@@ -2,9 +2,10 @@
 BTC Trend Trader Professional v4
 Strategy Module
 
-Step 1:
-Add detailed entry diagnostics without changing
-the existing trading logic.
+Strategy v5 additions:
+- H4 trend regime filter
+- EMA20 pullback entry filter
+- Detailed entry diagnostics
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ class Strategy:
     """
     Trend-following strategy using:
 
+    - EMA 20 pullback
     - EMA Fast
     - EMA Slow
     - EMA Distance Filter
@@ -151,12 +153,41 @@ class Strategy:
         )
 
         # -------------------------------------------------
+        # EMA20 Pullback
+        # -------------------------------------------------
+        #
+        # BUY:
+        # Price has pulled back to or below EMA20.
+        #
+        # SELL:
+        # Price has pulled back to or above EMA20.
+        #
+        # This is deliberately permissive for the first
+        # Strategy v5 test. We will measure trade frequency
+        # before making the filter more restrictive.
+        # -------------------------------------------------
+
+        if "EMA_20" not in data.columns:
+            raise ValueError(
+                "EMA_20 indicator is required for Strategy v5."
+            )
+
+        bullish_pullback = (
+            data["Close"] <= data["EMA_20"]
+        )
+
+        bearish_pullback = (
+            data["Close"] >= data["EMA_20"]
+        )
+
+        # -------------------------------------------------
         # BUY
         # -------------------------------------------------
 
         buy = (
             bullish_ema
             & data["H4_Bullish"]
+            & bullish_pullback
             & strong_trend
             & (data["ADX"] > config.ADX_THRESHOLD)
             & (data["RSI"] <= config.RSI_BUY_LEVEL)
@@ -169,6 +200,7 @@ class Strategy:
         sell = (
             bearish_ema
             & data["H4_Bearish"]
+            & bearish_pullback
             & strong_trend
             & (data["ADX"] > config.ADX_THRESHOLD)
             & (data["RSI"] >= config.RSI_SELL_LEVEL)
@@ -183,7 +215,7 @@ class Strategy:
         data.loc[
             buy,
             "Reason"
-        ] = "Strong bullish trend"
+        ] = "Bullish trend + EMA20 pullback"
 
         data.loc[buy, "StopLoss"] = (
             data.loc[buy, "Close"]
@@ -210,7 +242,7 @@ class Strategy:
         data.loc[
             sell,
             "Reason"
-        ] = "Strong bearish trend"
+        ] = "Bearish trend + EMA20 pullback"
 
         data.loc[sell, "StopLoss"] = (
             data.loc[sell, "Close"]
@@ -266,12 +298,31 @@ class Strategy:
         ] = "EMA distance too small"
 
         # -------------------------------------------------
+        # EMA20 Pullback Failure
+        # -------------------------------------------------
+
+        data.loc[
+            bullish_candidate
+            & strong_trend
+            & (~bullish_pullback),
+            "Reason"
+        ] = "BUY rejected: no EMA20 pullback"
+
+        data.loc[
+            bearish_candidate
+            & strong_trend
+            & (~bearish_pullback),
+            "Reason"
+        ] = "SELL rejected: no EMA20 pullback"
+
+        # -------------------------------------------------
         # ADX Failure
         # -------------------------------------------------
 
         data.loc[
             bullish_candidate
             & strong_trend
+            & bullish_pullback
             & (data["ADX"] <= config.ADX_THRESHOLD),
             "Reason"
         ] = "BUY rejected: ADX below threshold"
@@ -279,6 +330,7 @@ class Strategy:
         data.loc[
             bearish_candidate
             & strong_trend
+            & bearish_pullback
             & (data["ADX"] <= config.ADX_THRESHOLD),
             "Reason"
         ] = "SELL rejected: ADX below threshold"
@@ -290,6 +342,7 @@ class Strategy:
         data.loc[
             bullish_candidate
             & strong_trend
+            & bullish_pullback
             & (data["ADX"] > config.ADX_THRESHOLD)
             & (data["RSI"] > config.RSI_BUY_LEVEL),
             "Reason"
@@ -298,6 +351,7 @@ class Strategy:
         data.loc[
             bearish_candidate
             & strong_trend
+            & bearish_pullback
             & (data["ADX"] > config.ADX_THRESHOLD)
             & (data["RSI"] < config.RSI_SELL_LEVEL),
             "Reason"
@@ -306,8 +360,7 @@ class Strategy:
         # -------------------------------------------------
         # H4 Regime Rejection Diagnostics
         #
-        # Keep this LAST so an H4 rejection is not
-        # overwritten by ADX or RSI diagnostics.
+        # Keep this LAST so H4 rejection remains visible.
         # -------------------------------------------------
 
         data.loc[
@@ -336,6 +389,16 @@ class Strategy:
 
         data["Diagnostic_Bullish_EMA"] = bullish_ema
         data["Diagnostic_Bearish_EMA"] = bearish_ema
+
+        data["Diagnostic_EMA20"] = data["EMA_20"]
+
+        data["Diagnostic_Bullish_Pullback"] = (
+            bullish_pullback
+        )
+
+        data["Diagnostic_Bearish_Pullback"] = (
+            bearish_pullback
+        )
 
         data["Diagnostic_ADX_Pass"] = (
             data["ADX"] > config.ADX_THRESHOLD
