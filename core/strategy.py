@@ -43,7 +43,11 @@ class Strategy:
     entry conditions without changing signal behavior.
     """
 
-    def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
+    def generate_signals(
+        self,
+        df: pd.DataFrame,
+        h4_df: pd.DataFrame | None = None,
+    ) -> pd.DataFrame:
 
         data = df.copy()
 

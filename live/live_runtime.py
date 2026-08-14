@@ -151,12 +151,19 @@ class LiveRuntime:
         candles = self.market_feed.latest()
 
         if candles is None:
-
             print("Waiting for market data...")
-
             return
 
-        candles = self.strategy.generate_signals(candles)
+        h4_candles = self.market_feed.latest_h4()
+
+        if h4_candles is None:
+            print("Waiting for H4 market data...")
+            return
+
+        candles = self.strategy.generate_signals(
+            candles,
+            h4_candles,
+        )
 
         latest = candles.iloc[-1]
 

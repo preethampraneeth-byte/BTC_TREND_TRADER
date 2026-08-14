@@ -26,6 +26,7 @@ class LiveStrategyService:
     def generate_signals(
         self,
         candles,
+        h4_candles,
     ):
         """
         Calculate indicators and generate
