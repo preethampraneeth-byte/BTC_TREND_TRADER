@@ -3,7 +3,9 @@ BTC Trend Trader v1.0
 Indicators Module
 
 Calculates:
-- EMA
+- EMA 20
+- EMA Fast
+- EMA Slow
 - ATR
 - RSI
 - ADX
@@ -43,14 +45,24 @@ class Indicators:
         # EMA
         # ==========================
 
-        data[f"EMA_{config.EMA_FAST}"] = ta.ema(
+        # EMA 20
+        # Used later by Strategy v5
+        # for pullback / entry timing.
+        data["EMA_20"] = ta.ema(
             data["Close"],
-            length=config.EMA_FAST
+            length=20,
         )
 
+        # Fast EMA
+        data[f"EMA_{config.EMA_FAST}"] = ta.ema(
+            data["Close"],
+            length=config.EMA_FAST,
+        )
+
+        # Slow EMA
         data[f"EMA_{config.EMA_SLOW}"] = ta.ema(
             data["Close"],
-            length=config.EMA_SLOW
+            length=config.EMA_SLOW,
         )
 
         # ==========================
@@ -61,7 +73,7 @@ class Indicators:
             high=data["High"],
             low=data["Low"],
             close=data["Close"],
-            length=config.ATR_PERIOD
+            length=config.ATR_PERIOD,
         )
 
         # ==========================
@@ -70,7 +82,7 @@ class Indicators:
 
         data["RSI"] = ta.rsi(
             data["Close"],
-            length=config.RSI_PERIOD
+            length=config.RSI_PERIOD,
         )
 
         # ==========================
@@ -81,9 +93,11 @@ class Indicators:
             high=data["High"],
             low=data["Low"],
             close=data["Close"],
-            length=config.ADX_PERIOD
+            length=config.ADX_PERIOD,
         )
 
-        data["ADX"] = adx[f"ADX_{config.ADX_PERIOD}"]
+        data["ADX"] = adx[
+            f"ADX_{config.ADX_PERIOD}"
+        ]
 
         return data
