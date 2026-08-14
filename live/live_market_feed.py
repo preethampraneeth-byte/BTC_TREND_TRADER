@@ -53,6 +53,21 @@ class LiveMarketFeed:
         )
 
     # -------------------------------------------------
+    def latest_h4(self, bars: int = 500):
+        """
+        Retrieve the latest H4 candles from MT5.
+
+        Used by Strategy v5 for the higher-timeframe
+        trend regime filter.
+        """
+
+        return self.connector.get_latest_candles(
+            symbol=config.SYMBOL,
+            timeframe="H4",
+            bars=bars,
+        )
+
+    # -------------------------------------------------
 
     def shutdown(self):
 
