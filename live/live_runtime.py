@@ -179,6 +179,7 @@ class LiveRuntime:
 
         print(
             f"Signal={latest['Signal']} | "
+            f"Reason={latest['Reason']} | "
             f"EMA{config.EMA_FAST}={latest[f'EMA_{config.EMA_FAST}']:.2f} | "
             f"EMA{config.EMA_SLOW}={latest[f'EMA_{config.EMA_SLOW}']:.2f} | "
             f"RSI={latest['RSI']:.2f} | "
