@@ -38,6 +38,9 @@ class LiveRuntime:
 
         self.last_processed_candle = None
 
+        self.cached_h4_candles = None
+        self.cached_h4_candle_time = None
+
         self.shutdown_complete = False
 
         self.start_time = time.time()
@@ -148,11 +151,32 @@ class LiveRuntime:
 
     def process_market(self):
 
+        # -------------------------------------------------
+        # Get latest H1 candles
+        # -------------------------------------------------
+
         candles = self.market_feed.latest()
 
         if candles is None:
             print("Waiting for market data...")
             return
+
+        # -------------------------------------------------
+        # Check whether a new H1 candle has arrived
+        # -------------------------------------------------
+
+        latest_candle = candles.iloc[-1]
+        candle_time = latest_candle["Time"]
+
+        if candle_time == self.last_processed_candle:
+            return
+
+        # Mark this H1 candle as processed
+        self.last_processed_candle = candle_time
+
+        # -------------------------------------------------
+        # Get H4 data ONLY for a new H1 candle
+        # -------------------------------------------------
 
         h4_candles = self.market_feed.latest_h4()
 
@@ -160,34 +184,45 @@ class LiveRuntime:
             print("[H4] No H4 market data returned.")
             return
 
+        self.cached_h4_candles = h4_candles
+        self.cached_h4_candle_time = (
+            h4_candles.iloc[-1]["Time"]
+        )
+
         print(
             f"[H4] Retrieved {len(h4_candles)} candles | "
-            f"Latest: {h4_candles.iloc[-1]['Time']}"
+            f"Latest: {self.cached_h4_candle_time}"
         )
+
+        # -------------------------------------------------
+        # Generate H1 signals using H4 regime
+        # -------------------------------------------------
 
         candles = self.strategy.generate_signals(
             candles,
-            h4_candles,
+            self.cached_h4_candles,
         )
 
         latest = candles.iloc[-1]
 
-        candle_time = latest["Time"]
-
-        if candle_time == self.last_processed_candle:
-            return
-
-        self.last_processed_candle = candle_time
+        # -------------------------------------------------
+        # Calculate trend strength
+        # -------------------------------------------------
 
         ema_distance = abs(
-            latest[f"EMA_{config.EMA_FAST}"] -
-            latest[f"EMA_{config.EMA_SLOW}"]
+            latest[f"EMA_{config.EMA_FAST}"]
+            - latest[f"EMA_{config.EMA_SLOW}"]
         )
 
         strong_trend = (
-            ema_distance >=
-            latest["ATR"] * config.EMA_DISTANCE_ATR_MULTIPLIER
+            ema_distance
+            >= latest["ATR"]
+            * config.EMA_DISTANCE_ATR_MULTIPLIER
         )
+
+        # -------------------------------------------------
+        # Signal Diagnostics
+        # -------------------------------------------------
 
         print(
             f"Signal={latest['Signal']} | "
@@ -196,8 +231,10 @@ class LiveRuntime:
             f"H4 EMA200={latest['H4_EMA_200']:.2f} | "
             f"H4 Bull={latest['H4_Bullish']} | "
             f"H4 Bear={latest['H4_Bearish']} | "
-            f"EMA{config.EMA_FAST}={latest[f'EMA_{config.EMA_FAST}']:.2f} | "
-            f"EMA{config.EMA_SLOW}={latest[f'EMA_{config.EMA_SLOW}']:.2f} | "
+            f"EMA{config.EMA_FAST}="
+            f"{latest[f'EMA_{config.EMA_FAST}']:.2f} | "
+            f"EMA{config.EMA_SLOW}="
+            f"{latest[f'EMA_{config.EMA_SLOW}']:.2f} | "
             f"RSI={latest['RSI']:.2f} | "
             f"ADX={latest['ADX']:.2f} | "
             f"ATR={latest['ATR']:.2f}"
@@ -206,7 +243,137 @@ class LiveRuntime:
         print()
         print(f"New Candle : {candle_time}")
 
-        #
+        # -------------------------------------------------
+        # Update Existing Position
+        # -------------------------------------------------
+
+        closed_trade = self.executor.update(
+            high=float(latest["High"]),
+            low=float(latest["Low"]),
+            close=float(latest["Close"]),
+            atr=float(latest["ATR"]),
+            timestamp=candle_time,
+        )
+
+        if closed_trade is not None:
+
+            print()
+            print("✓ Paper trade closed.")
+            print(f"Result     : {closed_trade['result']}")
+            print(f"Profit     : {closed_trade['profit']:.2f}")
+            print(
+                f"Balance    : "
+                f"{self.executor.get_balance():.2f}"
+            )
+            print(
+                f"Equity     : "
+                f"{self.executor.get_equity():.2f}"
+            )
+
+        # -------------------------------------------------
+        # Existing Position
+        # -------------------------------------------------
+
+        if self.executor.has_open_trade():
+
+            trade = self.executor.get_open_trades()[0]
+
+            print("Position   : OPEN")
+            print(
+                f"Balance    : "
+                f"{self.executor.get_balance():.2f}"
+            )
+            print(
+                f"Equity     : "
+                f"{self.executor.get_equity():.2f}"
+            )
+            print(
+                f"Stop Loss  : "
+                f"{trade['stop_loss']:.2f}"
+            )
+            print(
+                f"Take Profit: "
+                f"{trade['take_profit']:.2f}"
+            )
+            print(
+                f"Lot Size   : "
+                f"{trade['lot_size']:.2f}"
+            )
+            print(
+                f"Partials   : "
+                f"{len(trade['partial_exits'])}/"
+                f"{len(trade['partial_tp_hits'])}"
+            )
+            print(
+                f"Break-even : "
+                f"{'YES' if trade['break_even_activated'] else 'NO'}"
+            )
+            print(
+                f"Trailing   : "
+                f"{'YES' if trade['trailing_stop_activated'] else 'NO'}"
+            )
+
+            return
+
+        # -------------------------------------------------
+        # Strategy Signal
+        # -------------------------------------------------
+
+        signal = latest["Signal"]
+
+        if signal not in ("BUY", "SELL"):
+
+            print(f"Signal     : {signal}")
+            print(
+                f"Balance    : "
+                f"{self.executor.get_balance():.2f}"
+            )
+            print(
+                f"Equity     : "
+                f"{self.executor.get_equity():.2f}"
+            )
+
+            return
+
+        print(f"Signal     : {signal}")
+
+        # -------------------------------------------------
+        # Position Size
+        # -------------------------------------------------
+
+        lot_size = self.risk_manager.calculate_position_size(
+            balance=self.executor.get_balance(),
+            risk_percent=config.RISK_PER_TRADE,
+            entry_price=float(latest["Close"]),
+            stop_loss=float(latest["StopLoss"]),
+        )
+
+        # -------------------------------------------------
+        # Create Paper Trade
+        # -------------------------------------------------
+
+        created = self.executor.execute(
+            signal=signal,
+            price=float(latest["Close"]),
+            stop_loss=float(latest["StopLoss"]),
+            take_profit=float(latest["TakeProfit"]),
+            lot_size=lot_size,
+            timestamp=candle_time,
+        )
+
+        if created:
+            print("✓ Paper trade created.")
+        else:
+            print("Trade already exists.")
+
+        print(
+            f"Balance    : "
+            f"{self.executor.get_balance():.2f}"
+        )
+        print(
+            f"Equity     : "
+            f"{self.executor.get_equity():.2f}"
+        )
         # -------------------------------------------------
         # Update Existing Position
         # -------------------------------------------------
