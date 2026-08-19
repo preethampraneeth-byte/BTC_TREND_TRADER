@@ -231,7 +231,7 @@ class LiveRuntime:
             f"ATR={latest['ATR']:.2f} | "
             f"EMA20={latest['EMA_20']:.2f} | "
             f"EMA20 Pullback="
-            f"{latest['Diagnostic_Bearish_Pullback']} | "
+            f"{latest['Diagnostic_Bullish_Pullback'] if latest['Signal'] == 'BUY' or latest['Reason'].startswith('BUY rejected') else latest['Diagnostic_Bearish_Pullback']} | "
         )
 
         print()
